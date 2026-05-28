@@ -141,3 +141,52 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Project build outputs
+apps/*/dist/
+apps/*/build/
+
+# Docker local overrides
+.docker/
+docker-compose.override.yml
+
+# Local runtime data
+data/
+tmp/
+.cache/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Cloud credentials and keys
+.aws/
+*.pem
+*.key
+*.crt
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDEs
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# k6 results
+load/results/
+*.summary.json
+
+# Monitoring local runtime data
+ops/grafana/data/
+ops/prometheus/data/
+ops/loki/data/
