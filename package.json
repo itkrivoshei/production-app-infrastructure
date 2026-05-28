@@ -1,0 +1,37 @@
+{
+  "name": "production-app-infrastructure",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Production-like DevOps Control Center with Docker, GitHub Actions, Terraform, Prometheus, Grafana, Loki, k6, Trivy, and AWS-ready infrastructure.",
+  "scripts": {
+    "dev": "docker compose up --build",
+    "down": "docker compose down",
+    "clean": "bash scripts/clean.sh",
+    "health": "bash scripts/healthcheck.sh",
+    "logs": "bash scripts/logs.sh",
+    "restart": "bash scripts/restart.sh",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck"
+  },
+  "keywords": [
+    "devops",
+    "docker",
+    "terraform",
+    "aws",
+    "github-actions",
+    "prometheus",
+    "grafana",
+    "loki",
+    "k6",
+    "trivy",
+    "typescript",
+    "react",
+    "fastify",
+    "ci-cd",
+    "observability"
+  ],
+  "author": "Nikita Krivoshei",
+  "license": "MIT"
+}
