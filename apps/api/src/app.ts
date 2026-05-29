@@ -12,20 +12,24 @@ import { statusRoutes } from './routes/status.js';
 import { versionRoutes } from './routes/version.js';
 
 export async function buildApp() {
-  const app = Fastify({
-    logger: {
-      level: config.logLevel,
-      transport:
-        config.appEnv === 'local'
-          ? {
-              target: 'pino-pretty',
-              options: {
-                translateTime: 'HH:MM:ss Z',
-                ignore: 'pid,hostname'
-              }
+  const logger =
+    config.appEnv === 'local'
+      ? {
+          level: config.logLevel,
+          transport: {
+            target: 'pino-pretty',
+            options: {
+              translateTime: 'HH:MM:ss Z',
+              ignore: 'pid,hostname'
             }
-          : undefined
-    }
+          }
+        }
+      : {
+          level: config.logLevel
+        };
+
+  const app = Fastify({
+    logger
   });
 
   await app.register(cors, {
@@ -35,13 +39,13 @@ export async function buildApp() {
   registerMetrics(app, config);
   await registerSwagger(app, config);
 
-  await app.register(healthRoutes);
-  await app.register(readyRoutes);
-  await app.register(statusRoutes);
-  await app.register(metricsRoutes);
-  await app.register(logsRoutes);
-  await app.register(async (instance) => versionRoutes(instance, config));
-  await app.register(async (instance) => loadRoutes(instance, config));
+  await healthRoutes(app);
+  await readyRoutes(app);
+  await statusRoutes(app, config);
+  await metricsRoutes(app);
+  await logsRoutes(app);
+  await versionRoutes(app, config);
+  await loadRoutes(app, config);
 
   return app;
 }
