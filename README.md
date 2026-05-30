@@ -93,6 +93,18 @@ API through Nginx:
 http://localhost:8088/api/health
 ```
 
+## Operational Scripts
+
+```bash
+./scripts/dev.sh detached
+./scripts/healthcheck.sh
+./scripts/logs.sh api
+./scripts/restart.sh api
+./scripts/clean.sh --force
+```
+
+These scripts provide a small operational layer for local Docker-based development and troubleshooting.
+
 ## CI/CD
 
 To be added.

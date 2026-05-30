@@ -82,3 +82,76 @@ Clean:
 ```bash
 bash scripts/clean.sh
 ```
+
+## Operational Scripts
+
+The project includes small Bash scripts for common local operations.
+
+### Start The Local Docker Stack
+
+```bash
+./scripts/dev.sh
+```
+
+Start in detached mode:
+
+```bash
+./scripts/dev.sh detached
+```
+
+### Run Health Checks
+
+```bash
+./scripts/healthcheck.sh
+```
+
+This checks:
+
+- frontend through Nginx
+- Nginx health endpoint
+- API through Nginx
+- direct API health endpoint
+
+### View Logs
+
+All services:
+
+```bash
+./scripts/logs.sh
+```
+
+Specific service:
+
+```bash
+./scripts/logs.sh api
+./scripts/logs.sh web
+./scripts/logs.sh nginx
+```
+
+### Restart A Service
+
+```bash
+./scripts/restart.sh api
+```
+
+Valid services:
+
+- api
+- web
+- nginx
+
+### Clean Local Stack
+
+Interactive:
+
+```bash
+./scripts/clean.sh
+```
+
+Non-interactive:
+
+```bash
+./scripts/clean.sh --force
+```
+
+The cleanup script only removes this project's Docker Compose stack and volumes. It does not run `docker system prune`.
