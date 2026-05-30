@@ -5,9 +5,11 @@
   "packageManager": "pnpm@11.4.0",
   "description": "Production-like DevOps Control Center with Docker, GitHub Actions, Terraform, Prometheus, Grafana, Loki, k6, Trivy, and AWS-ready infrastructure.",
   "scripts": {
-    "dev": "docker compose up --build",
-    "down": "docker compose down",
+    "dev": "bash scripts/dev.sh",
+    "dev:detached": "bash scripts/dev.sh detached",
+    "down": "bash scripts/dev.sh down",
     "clean": "bash scripts/clean.sh",
+    "clean:force": "bash scripts/clean.sh --force",
     "health": "bash scripts/healthcheck.sh",
     "logs": "bash scripts/logs.sh",
     "restart": "bash scripts/restart.sh",
