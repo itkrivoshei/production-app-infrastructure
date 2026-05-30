@@ -1,16 +1,49 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -Eeuo pipefail
 
-NGINX_PORT="${NGINX_PORT:-8088}"
-API_PORT="${API_PORT:-8080}"
+# shellcheck source=scripts/lib/common.sh
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib/common.sh"
 
-echo "Checking Nginx..."
-curl -fsS "http://localhost:${NGINX_PORT}/nginx-health"
+cd_project_root
+require_command curl
 
-echo "Checking API through Nginx..."
-curl -fsS "http://localhost:${NGINX_PORT}/api/health"
+check_url() {
+  local name="$1"
+  local url="$2"
 
-echo "Checking API directly..."
-curl -fsS "http://localhost:${API_PORT}/health"
+  info "Checking ${name}: ${url}"
 
-echo "All health checks passed."
+  if curl -fsS --max-time 5 "$url" >/dev/null; then
+    success "${name} is healthy"
+  else
+    die "${name} health check failed: ${url}"
+  fi
+}
+
+check_json_contains() {
+  local name="$1"
+  local url="$2"
+  local expected="$3"
+
+  info "Checking ${name}: ${url}"
+
+  local response
+  response="$(curl -fsS --max-time 5 "$url")"
+
+  if [[ "$response" == *"$expected"* ]]; then
+    success "${name} returned expected response"
+  else
+    error "Unexpected response from ${name}:"
+    printf "%s\n" "$response"
+    die "${name} did not contain expected text: $expected"
+  fi
+}
+
+info "Running local stack health checks..."
+
+check_url "Frontend through Nginx" "http://localhost:${NGINX_PORT}"
+check_url "Nginx" "http://localhost:${NGINX_PORT}/nginx-health"
+check_json_contains "API through Nginx" "http://localhost:${NGINX_PORT}/api/health" '"status":"ok"'
+check_json_contains "API direct" "http://localhost:${API_PORT}/health" '"status":"ok"'
+
+success "All health checks passed."
