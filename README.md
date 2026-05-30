@@ -64,6 +64,35 @@ It shows:
 - metrics endpoint status
 - demo load, error, and log actions
 
+## Dockerized Local Environment
+
+The project can run as a production-like local stack with Docker Compose.
+
+```bash
+docker compose up --build
+```
+
+The stack includes:
+
+- Fastify API container
+- React static frontend container
+- Nginx reverse proxy
+- Docker health checks
+- Isolated Docker network
+- Restart policies
+
+Open:
+
+```text
+http://localhost:8088
+```
+
+API through Nginx:
+
+```text
+http://localhost:8088/api/health
+```
+
 ## CI/CD
 
 To be added.
