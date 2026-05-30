@@ -49,6 +49,10 @@ require_docker() {
   if ! docker compose version >/dev/null 2>&1; then
     die "Docker Compose v2 is required. Expected command: docker compose"
   fi
+
+  if ! docker info >/dev/null 2>&1; then
+    die "Docker daemon is not running or not reachable. Start Docker and try again."
+  fi
 }
 
 is_valid_service() {
