@@ -2,3 +2,4 @@ packages:
   - "apps/*"
 allowBuilds:
   esbuild: false
+  msw: false

@@ -14,6 +14,12 @@
     "api:build": "pnpm --filter @production-app-infrastructure/api build",
     "api:test": "pnpm --filter @production-app-infrastructure/api test",
     "api:typecheck": "pnpm --filter @production-app-infrastructure/api typecheck",
+    "web:dev": "pnpm --filter @production-app-infrastructure/web dev",
+    "web:build": "pnpm --filter @production-app-infrastructure/web build",
+    "web:test": "pnpm --filter @production-app-infrastructure/web test",
+    "web:typecheck": "pnpm --filter @production-app-infrastructure/web typecheck",
+    "web:preview": "pnpm --filter @production-app-infrastructure/web preview",
+    "dev:local": "concurrently -n api,web -c blue,green \"pnpm api:dev\" \"pnpm web:dev\"",
     "lint": "pnpm -r lint",
     "test": "pnpm -r test",
     "build": "pnpm -r build",
@@ -37,5 +43,8 @@
     "observability"
   ],
   "author": "Nikita Krivoshei",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^10.0.0"
+  }
 }
