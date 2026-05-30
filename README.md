@@ -26,7 +26,43 @@ To be added.
 
 ## Local Development
 
-To be added.
+Run the backend:
+
+```bash
+pnpm api:dev
+```
+
+Run the frontend dashboard:
+
+```bash
+pnpm web:dev
+```
+
+Open:
+
+```text
+http://localhost:5173
+```
+
+Run both locally:
+
+```bash
+pnpm dev:local
+```
+
+## Frontend Dashboard
+
+The frontend dashboard is built with React, TypeScript, Vite, Tailwind CSS, shadcn/ui, TanStack Query, Recharts, and React Router.
+
+It shows:
+
+- API health
+- readiness status
+- service version
+- environment
+- uptime
+- metrics endpoint status
+- demo load, error, and log actions
 
 ## CI/CD
 
