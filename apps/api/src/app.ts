@@ -16,6 +16,12 @@ export async function buildApp() {
     config.appEnv === 'local'
       ? {
           level: config.logLevel,
+          base: {
+            service: config.appName,
+            environment: config.appEnv,
+            version: config.appVersion,
+            commit: config.commitSha
+          },
           transport: {
             target: 'pino-pretty',
             options: {
@@ -25,7 +31,13 @@ export async function buildApp() {
           }
         }
       : {
-          level: config.logLevel
+          level: config.logLevel,
+          base: {
+            service: config.appName,
+            environment: config.appEnv,
+            version: config.appVersion,
+            commit: config.commitSha
+          }
         };
 
   const app = Fastify({
