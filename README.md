@@ -78,6 +78,7 @@ The stack includes:
 - React static frontend container
 - Nginx reverse proxy
 - Prometheus metrics scraper
+- Grafana dashboard service
 - Docker health checks
 - Isolated Docker network
 - Restart policies
@@ -98,6 +99,12 @@ Prometheus:
 
 ```text
 http://localhost:9090
+```
+
+Grafana:
+
+```text
+http://localhost:3001
 ```
 
 ## Operational Scripts
@@ -143,6 +150,32 @@ Example metrics:
 - `app_info`
 
 See [docs/monitoring.md](docs/monitoring.md).
+
+## Grafana Dashboard
+
+The stack includes a pre-provisioned Grafana dashboard.
+
+| Service | URL |
+| --- | --- |
+| Grafana | http://localhost:3001 |
+| Dashboard | http://localhost:3001/d/devops-control-center/devops-control-center |
+| Prometheus | http://localhost:9090 |
+
+The dashboard is stored as code in:
+
+```text
+ops/grafana/dashboards/devops-control-center.json
+```
+
+It visualizes:
+
+- requests per minute
+- error rate
+- response time p95
+- API uptime
+- CPU usage
+- memory usage
+- load events
 
 ## Logging
 

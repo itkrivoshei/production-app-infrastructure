@@ -57,6 +57,8 @@ Services:
 | Direct API | [http://localhost:8080/health](http://localhost:8080/health) |
 | Prometheus | [http://localhost:9090](http://localhost:9090) |
 | Prometheus targets | [http://localhost:9090/targets](http://localhost:9090/targets) |
+| Grafana | [http://localhost:3001](http://localhost:3001) |
+| Grafana dashboard | [http://localhost:3001/d/devops-control-center/devops-control-center](http://localhost:3001/d/devops-control-center/devops-control-center) |
 
 Health check:
 
@@ -72,6 +74,7 @@ bash scripts/logs.sh api
 bash scripts/logs.sh web
 bash scripts/logs.sh nginx
 bash scripts/logs.sh prometheus
+bash scripts/logs.sh grafana
 ```
 
 Restart:
@@ -116,6 +119,8 @@ This checks:
 - direct API health endpoint
 - Prometheus readiness
 - Prometheus API scrape target
+- Grafana health endpoint
+- Grafana dashboard provisioning
 
 ### View Logs
 
@@ -132,6 +137,7 @@ Specific service:
 ./scripts/logs.sh web
 ./scripts/logs.sh nginx
 ./scripts/logs.sh prometheus
+./scripts/logs.sh grafana
 ```
 
 ### Restart A Service
@@ -146,6 +152,7 @@ Valid services:
 - web
 - nginx
 - prometheus
+- grafana
 
 ### Clean Local Stack
 
@@ -183,4 +190,25 @@ The API metrics endpoint is available through Nginx:
 
 ```text
 http://localhost:8088/api/metrics
+```
+
+## Grafana
+
+Grafana runs on:
+
+```text
+http://localhost:3001
+```
+
+The dashboard is provisioned automatically and opens at:
+
+```text
+http://localhost:3001/d/devops-control-center/devops-control-center
+```
+
+The Prometheus datasource and dashboard provider are loaded from:
+
+```text
+ops/grafana/provisioning/datasources/prometheus.yml
+ops/grafana/provisioning/dashboards/dashboards.yml
 ```
