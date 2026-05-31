@@ -55,6 +55,8 @@ Services:
 | Frontend through Nginx | [http://localhost:8088](http://localhost:8088) |
 | API through Nginx | [http://localhost:8088/api/health](http://localhost:8088/api/health) |
 | Direct API | [http://localhost:8080/health](http://localhost:8080/health) |
+| Prometheus | [http://localhost:9090](http://localhost:9090) |
+| Prometheus targets | [http://localhost:9090/targets](http://localhost:9090/targets) |
 
 Health check:
 
@@ -69,6 +71,7 @@ bash scripts/logs.sh
 bash scripts/logs.sh api
 bash scripts/logs.sh web
 bash scripts/logs.sh nginx
+bash scripts/logs.sh prometheus
 ```
 
 Restart:
@@ -111,6 +114,8 @@ This checks:
 - Nginx health endpoint
 - API through Nginx
 - direct API health endpoint
+- Prometheus readiness
+- Prometheus API scrape target
 
 ### View Logs
 
@@ -126,6 +131,7 @@ Specific service:
 ./scripts/logs.sh api
 ./scripts/logs.sh web
 ./scripts/logs.sh nginx
+./scripts/logs.sh prometheus
 ```
 
 ### Restart A Service
@@ -139,6 +145,7 @@ Valid services:
 - api
 - web
 - nginx
+- prometheus
 
 ### Clean Local Stack
 
@@ -155,3 +162,25 @@ Non-interactive:
 ```
 
 The cleanup script only removes this project's Docker Compose stack and volumes. It does not run `docker system prune`.
+
+## Prometheus
+
+Prometheus runs on:
+
+```text
+http://localhost:9090
+```
+
+Targets page:
+
+```text
+http://localhost:9090/targets
+```
+
+The API target should be `UP`.
+
+The API metrics endpoint is available through Nginx:
+
+```text
+http://localhost:8088/api/metrics
+```
