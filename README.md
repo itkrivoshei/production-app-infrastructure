@@ -1,226 +1,131 @@
 # Production App Infrastructure
 
-Production-like DevOps Control Center with Docker, GitHub Actions, Terraform, Prometheus, Grafana, Loki, k6, Trivy, and AWS-ready infrastructure.
+Production-like DevOps Control Center for a small API and dashboard. The project is built to prove the full path from local development to Dockerized operations, observability, load testing, CI/CD, security scans, rollback, optional Terraform, and Project 2 Kubernetes reuse.
 
-## What this project demonstrates
+## What It Demonstrates
 
-- Containerized frontend and backend services
-- Local production-like Docker Compose environment
-- Reverse proxy with Nginx
-- Metrics with Prometheus
-- Dashboards with Grafana
-- Logs with Loki and Promtail
-- Load testing with k6
-- CI/CD with GitHub Actions
-- Docker image publishing to GHCR
-- Security scanning with Trivy, Hadolint, and ShellCheck
-- Optional AWS infrastructure with Terraform
+- Fastify API with health, readiness, version, OpenAPI, metrics, demo load, and demo logs.
+- React/Vite dashboard served through Nginx.
+- Docker Compose stack with API, web, Nginx, Prometheus, Grafana, Loki, Promtail, and k6.
+- Prometheus metrics and provisioned Grafana dashboards.
+- Structured API logs collected by Promtail and queried in Loki.
+- k6 smoke, load, and stress tests.
+- GitHub Actions for CI, GHCR image publishing, CodeQL, Trivy, Hadolint, and ShellCheck.
+- Rollback demo using local image tags and an isolated Compose project.
+- Optional AWS Terraform layer that validates locally without creating resources.
+- Project 2 readiness checks for Kubernetes handoff.
 
-## Architecture
-
-```text
-React dashboard -> Nginx reverse proxy -> Fastify API -> Prometheus metrics
-                                      └-> Grafana dashboards
-```
-
-The local stack is intentionally production-like: services are isolated in Docker
-Compose, Nginx owns the public entrypoint, the API exposes readiness and metrics,
-and observability services run beside the application.
-
-## Tech Stack
-
-| Area | Tools |
-| --- | --- |
-| Frontend | React, TypeScript, Vite, Tailwind CSS, shadcn/ui |
-| Backend | Fastify, TypeScript, Prometheus client |
-| Runtime | Docker, Docker Compose, Nginx |
-| Observability | Prometheus, Grafana, Loki, Promtail |
-| Delivery | GitHub Actions, GHCR-ready Docker images |
-| Infrastructure | Terraform AWS skeleton and deployment notes |
-
-## Local Development
-
-Install dependencies:
+## Quick Start
 
 ```bash
 corepack enable
 pnpm install
+docker compose up --build -d
+./scripts/healthcheck.sh
 ```
 
-Run the backend:
+Open the app:
+
+| Service | URL |
+| --- | --- |
+| Dashboard | http://localhost:8088 |
+| API health | http://localhost:8088/api/health |
+| API docs | http://localhost:8088/api/docs |
+| API metrics | http://localhost:8088/api/metrics |
+| Prometheus | http://localhost:9090 |
+| Grafana | http://localhost:3001 |
+| Loki | http://localhost:3100 |
+| Promtail | http://localhost:9080 |
+
+Stop the stack:
 
 ```bash
-pnpm api:dev
+docker compose down
 ```
 
-Run the frontend dashboard:
+## Local Quality Gate
 
 ```bash
-pnpm web:dev
+pnpm run ci
+docker compose config
+docker compose up --build -d
+./scripts/healthcheck.sh
+./scripts/project2-readiness.sh
+pnpm k6:docker:smoke
+pnpm k6:docker:load
+./scripts/rollback-demo.sh
+./scripts/rollback-demo.sh --clean
 ```
 
-Open:
+Terraform validation:
 
-```text
-http://localhost:5173
+```bash
+cd infra/terraform/aws
+terraform init
+terraform fmt -check -recursive
+terraform validate
+cd ../../..
 ```
 
-Run both locally:
+## Common Commands
 
 ```bash
 pnpm dev:local
+pnpm docker:dev
+pnpm docker:down
+pnpm health
+pnpm logs
+pnpm k6:docker:smoke
+pnpm k6:docker:load
+pnpm tf:aws:fmt
+pnpm tf:aws:validate
 ```
 
-Run the full local verification suite:
+Direct API checks:
 
 ```bash
-pnpm lint
-pnpm typecheck
-pnpm test
-pnpm build
-docker compose config --quiet
-docker compose build api web
+curl -fsS http://localhost:8088/api/health
+curl -fsS http://localhost:8088/api/ready
+curl -fsS http://localhost:8088/api/version
+curl -fsS http://localhost:8088/api/metrics | head
 ```
 
-## Frontend Dashboard
-
-The frontend dashboard is built with React, TypeScript, Vite, Tailwind CSS, shadcn/ui, TanStack Query, Recharts, and React Router.
-
-It shows:
-
-- API health
-- readiness status
-- service version
-- environment
-- uptime
-- metrics endpoint status
-- demo load, error, and log actions
-
-## Dockerized Local Environment
-
-The project can run as a production-like local stack with Docker Compose.
+Generate traffic and logs:
 
 ```bash
-docker compose up --build
+curl -fsS -X POST http://localhost:8088/api/load/cpu \
+  -H "Content-Type: application/json" \
+  -d '{"durationMs":500}'
+
+curl -fsS -X POST http://localhost:8088/api/logs/generate \
+  -H "Content-Type: application/json" \
+  -d '{"level":"info","message":"manual demo log"}'
 ```
 
-The stack includes:
+## Documentation
 
-- Fastify API container
-- React static frontend container
-- Nginx reverse proxy
-- Prometheus metrics scraper
-- Grafana dashboard service
-- Docker health checks
-- Isolated Docker network
-- Restart policies
+- [Architecture](docs/architecture.md)
+- [Local development](docs/local-development.md)
+- [Monitoring](docs/monitoring.md)
+- [Logging](docs/logging.md)
+- [Load testing](docs/load-testing.md)
+- [CI/CD](docs/ci-cd.md)
+- [Security](docs/security.md)
+- [Rollback](docs/rollback.md)
+- [Terraform AWS](docs/terraform-aws.md)
+- [Project 2 readiness](docs/project-2-readiness.md)
+- [Troubleshooting](docs/troubleshooting.md)
 
-Open:
+## Project 2 Handoff
 
-```text
-http://localhost:8088
-```
-
-API through Nginx:
-
-```text
-http://localhost:8088/api/health
-```
-
-Prometheus:
-
-```text
-http://localhost:9090
-```
-
-Grafana:
-
-```text
-http://localhost:3001
-```
-
-## Operational Scripts
+Run this before starting Kubernetes work:
 
 ```bash
-./scripts/dev.sh detached
-./scripts/healthcheck.sh
-./scripts/logs.sh api
-./scripts/restart.sh api
-./scripts/clean.sh --force
+./scripts/project2-readiness.sh
 ```
 
-These scripts provide a small operational layer for local Docker-based development and troubleshooting.
+For strict GHCR validation after the main-branch Docker workflow publishes images:
 
-## CI/CD
-
-To be added.
-
-## Monitoring
-
-The local Docker Compose stack includes Prometheus for metrics collection.
-
-Prometheus scrapes the Fastify API at:
-
-```text
-api:8080/metrics
+```bash
+CHECK_GHCR=true ./scripts/project2-readiness.sh
 ```
-
-Useful URLs:
-
-| Service | URL |
-| --- | --- |
-| Prometheus | http://localhost:9090 |
-| Targets | http://localhost:9090/targets |
-| API metrics | http://localhost:8088/api/metrics |
-
-Example metrics:
-
-- `http_requests_total`
-- `http_request_duration_seconds`
-- `app_errors_total`
-- `app_load_events_total`
-- `app_info`
-
-See [docs/monitoring.md](docs/monitoring.md).
-
-## Grafana Dashboard
-
-The stack includes a pre-provisioned Grafana dashboard.
-
-| Service | URL |
-| --- | --- |
-| Grafana | http://localhost:3001 |
-| Dashboard | http://localhost:3001/d/devops-control-center/devops-control-center |
-| Prometheus | http://localhost:9090 |
-
-The dashboard is stored as code in:
-
-```text
-ops/grafana/dashboards/devops-control-center.json
-```
-
-It visualizes:
-
-- requests per minute
-- error rate
-- response time p95
-- API uptime
-- CPU usage
-- memory usage
-- load events
-
-## Logging
-
-To be added.
-
-## Load Testing
-
-To be added.
-
-## Optional AWS Infrastructure
-
-To be added.
-
-## Screenshots
-
-To be added.
