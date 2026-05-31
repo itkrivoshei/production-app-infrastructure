@@ -36,6 +36,7 @@
     "web:typecheck": "pnpm --filter @production-app-infrastructure/web typecheck",
     "web:preview": "pnpm --filter @production-app-infrastructure/web preview",
     "dev:local": "concurrently -n api,web -c blue,green \"pnpm api:dev\" \"pnpm web:dev\"",
+    "ci": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
     "lint": "pnpm -r lint",
     "test": "pnpm -r test",
     "build": "pnpm -r build",
