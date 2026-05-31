@@ -45,5 +45,8 @@ check_url "Frontend through Nginx" "http://localhost:${NGINX_PORT}"
 check_url "Nginx" "http://localhost:${NGINX_PORT}/nginx-health"
 check_json_contains "API through Nginx" "http://localhost:${NGINX_PORT}/api/health" '"status":"ok"'
 check_json_contains "API direct" "http://localhost:${API_PORT}/health" '"status":"ok"'
+check_url "Prometheus readiness" "http://localhost:${PROMETHEUS_PORT}/-/ready"
+check_json_contains "Prometheus API target" "http://localhost:${PROMETHEUS_PORT}/api/v1/targets" '"job":"devops-control-center-api"'
+check_json_contains "Prometheus target health" "http://localhost:${PROMETHEUS_PORT}/api/v1/targets" '"health":"up"'
 
 success "All health checks passed."

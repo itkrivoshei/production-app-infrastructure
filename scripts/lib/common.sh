@@ -7,8 +7,9 @@ COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.yml}"
 
 API_PORT="${API_PORT:-8080}"
 NGINX_PORT="${NGINX_PORT:-8088}"
+PROMETHEUS_PORT="${PROMETHEUS_PORT:-9090}"
 
-VALID_SERVICES=("api" "web" "nginx")
+VALID_SERVICES=("api" "web" "nginx" "prometheus")
 
 info() {
   printf "\033[1;34m[INFO]\033[0m %s\n" "$*"

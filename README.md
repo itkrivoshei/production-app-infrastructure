@@ -77,6 +77,7 @@ The stack includes:
 - Fastify API container
 - React static frontend container
 - Nginx reverse proxy
+- Prometheus metrics scraper
 - Docker health checks
 - Isolated Docker network
 - Restart policies
@@ -91,6 +92,12 @@ API through Nginx:
 
 ```text
 http://localhost:8088/api/health
+```
+
+Prometheus:
+
+```text
+http://localhost:9090
 ```
 
 ## Operational Scripts
@@ -111,7 +118,31 @@ To be added.
 
 ## Monitoring
 
-To be added.
+The local Docker Compose stack includes Prometheus for metrics collection.
+
+Prometheus scrapes the Fastify API at:
+
+```text
+api:8080/metrics
+```
+
+Useful URLs:
+
+| Service | URL |
+| --- | --- |
+| Prometheus | http://localhost:9090 |
+| Targets | http://localhost:9090/targets |
+| API metrics | http://localhost:8088/api/metrics |
+
+Example metrics:
+
+- `http_requests_total`
+- `http_request_duration_seconds`
+- `app_errors_total`
+- `app_load_events_total`
+- `app_info`
+
+See [docs/monitoring.md](docs/monitoring.md).
 
 ## Logging
 

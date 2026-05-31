@@ -1,0 +1,17 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    project: production-app-infrastructure
+    environment: local
+
+scrape_configs:
+  - job_name: devops-control-center-api
+    metrics_path: /metrics
+    scrape_interval: 5s
+    static_configs:
+      - targets:
+          - api:8080
+        labels:
+          service: devops-control-center-api
+          component: backend
