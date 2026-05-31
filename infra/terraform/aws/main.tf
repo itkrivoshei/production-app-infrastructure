@@ -14,7 +14,7 @@ locals {
 
 resource "aws_ecr_repository" "api" {
   name                 = "${local.name_prefix}-api"
-  image_tag_mutability = "MUTABLE"
+  image_tag_mutability = "IMMUTABLE"
   force_delete         = var.force_delete_ecr
 
   image_scanning_configuration {
@@ -28,7 +28,7 @@ resource "aws_ecr_repository" "api" {
 
 resource "aws_ecr_repository" "web" {
   name                 = "${local.name_prefix}-web"
-  image_tag_mutability = "MUTABLE"
+  image_tag_mutability = "IMMUTABLE"
   force_delete         = var.force_delete_ecr
 
   image_scanning_configuration {
