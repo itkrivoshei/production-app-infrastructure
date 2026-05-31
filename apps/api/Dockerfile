@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 
-FROM node:22-alpine AS base
+FROM node:22-alpine3.23 AS base
 
 WORKDIR /app
 
@@ -29,13 +29,15 @@ COPY apps/api/package.json apps/api/package.json
 
 RUN pnpm install --frozen-lockfile --prod --filter @production-app-infrastructure/api...
 
-FROM node:22-alpine AS runtime
+FROM node:22-alpine3.23 AS runtime
 
 WORKDIR /app
 
 ENV NODE_ENV=production
 ENV APP_ENV=docker
 ENV PORT=8080
+
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 
 COPY --from=prod-deps /app/node_modules ./node_modules
 COPY --from=prod-deps /app/apps/api/node_modules ./apps/api/node_modules

@@ -55,7 +55,7 @@ services:
     image: devops-control-center-web:local
     container_name: devops-control-center-web
     expose:
-      - "80"
+      - "8080"
     networks:
       - app-network
     restart: unless-stopped
@@ -64,14 +64,14 @@ services:
       api:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1/health || exit 1"]
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:8080/health || exit 1"]
       interval: 30s
       timeout: 5s
       start_period: 10s
       retries: 3
 
   nginx:
-    image: nginx:1.27-alpine
+    image: nginx:1.29-alpine3.23
     container_name: devops-control-center-nginx
     ports:
       - "${NGINX_PORT:-8088}:80"
