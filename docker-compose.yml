@@ -200,6 +200,24 @@ services:
       start_period: 20s
       retries: 5
 
+  k6:
+    image: grafana/k6:1.7.1
+    container_name: devops-control-center-k6
+    profiles:
+      - tools
+    entrypoint:
+      - k6
+    environment:
+      TARGET_BASE_URL: http://nginx
+    volumes:
+      - ./load:/scripts:ro
+    networks:
+      - app-network
+    logging: *default-logging
+    depends_on:
+      nginx:
+        condition: service_healthy
+
 networks:
   app-network:
     driver: bridge
