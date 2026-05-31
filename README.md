@@ -18,13 +18,34 @@ Production-like DevOps Control Center with Docker, GitHub Actions, Terraform, Pr
 
 ## Architecture
 
-To be added.
+```text
+React dashboard -> Nginx reverse proxy -> Fastify API -> Prometheus metrics
+                                      └-> Grafana dashboards
+```
+
+The local stack is intentionally production-like: services are isolated in Docker
+Compose, Nginx owns the public entrypoint, the API exposes readiness and metrics,
+and observability services run beside the application.
 
 ## Tech Stack
 
-To be added.
+| Area | Tools |
+| --- | --- |
+| Frontend | React, TypeScript, Vite, Tailwind CSS, shadcn/ui |
+| Backend | Fastify, TypeScript, Prometheus client |
+| Runtime | Docker, Docker Compose, Nginx |
+| Observability | Prometheus, Grafana, Loki, Promtail |
+| Delivery | GitHub Actions, GHCR-ready Docker images |
+| Infrastructure | Terraform AWS skeleton and deployment notes |
 
 ## Local Development
+
+Install dependencies:
+
+```bash
+corepack enable
+pnpm install
+```
 
 Run the backend:
 
@@ -48,6 +69,17 @@ Run both locally:
 
 ```bash
 pnpm dev:local
+```
+
+Run the full local verification suite:
+
+```bash
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm build
+docker compose config --quiet
+docker compose build api web
 ```
 
 ## Frontend Dashboard
