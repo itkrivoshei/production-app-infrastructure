@@ -33,13 +33,21 @@ export async function logsRoutes(app: FastifyInstance): Promise<void> {
       const level = request.body.level ?? 'info';
       const message = request.body.message ?? 'Demo log generated';
 
-      app.log[level](
-        {
-          source: 'demo',
-          route: '/logs/generate'
-        },
-        message
-      );
+      const logContext = {
+        source: 'demo',
+        route: '/logs/generate'
+      };
+
+      switch (level) {
+        case 'warn':
+          app.log.warn(logContext, message);
+          break;
+        case 'error':
+          app.log.error(logContext, message);
+          break;
+        default:
+          app.log.info(logContext, message);
+      }
 
       return {
         status: 'ok',
