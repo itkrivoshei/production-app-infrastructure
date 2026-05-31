@@ -9,8 +9,10 @@ API_PORT="${API_PORT:-8080}"
 NGINX_PORT="${NGINX_PORT:-8088}"
 PROMETHEUS_PORT="${PROMETHEUS_PORT:-9090}"
 GRAFANA_PORT="${GRAFANA_PORT:-3001}"
+LOKI_PORT="${LOKI_PORT:-3100}"
+PROMTAIL_PORT="${PROMTAIL_PORT:-9080}"
 
-VALID_SERVICES=("api" "web" "nginx" "prometheus" "grafana")
+VALID_SERVICES=("api" "web" "nginx" "prometheus" "grafana" "loki" "promtail" "k6")
 
 info() {
   printf "\033[1;34m[INFO]\033[0m %s\n" "$*"

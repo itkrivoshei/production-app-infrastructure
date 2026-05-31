@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -euxo pipefail
+
+dnf update -y
+dnf install -y docker
+systemctl enable --now docker
+
+mkdir -p /opt/devops-control-center
+
+cat >/opt/devops-control-center/README.md <<'EOF'
+This optional EC2 host is a Terraform proof target for Project 1.
+
+Images intended for deployment:
+- API: ${api_image}
+- Web: ${web_image}
+
+Project 2 should replace this host-level demo with Kubernetes manifests or Helm.
+EOF

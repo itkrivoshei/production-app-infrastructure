@@ -1,0 +1,170 @@
+name: Security
+
+on:
+  push:
+    branches:
+      - main
+      - "feature/**"
+      - "fix/**"
+      - "chore/**"
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  trivy-filesystem:
+    name: Trivy filesystem scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Trivy filesystem scan for SARIF
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,secret,misconfig
+          ignore-unfixed: true
+          format: sarif
+          output: trivy-filesystem.sarif
+          severity: HIGH,CRITICAL
+          exit-code: "0"
+          hide-progress: true
+
+      - name: Upload Trivy filesystem SARIF
+        if: always() && github.event_name != 'pull_request'
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-filesystem.sarif
+          category: trivy-filesystem
+
+      - name: Run Trivy filesystem quality gate
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,secret,misconfig
+          ignore-unfixed: true
+          format: table
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+          hide-progress: true
+
+  dockerfile-lint:
+    name: Hadolint Dockerfiles
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: api
+            dockerfile: apps/api/Dockerfile
+          - name: web
+            dockerfile: apps/web/Dockerfile
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Hadolint
+        uses: hadolint/hadolint-action@v3.3.0
+        with:
+          dockerfile: ${{ matrix.dockerfile }}
+          failure-threshold: warning
+          ignore: DL3002
+          no-color: true
+
+  shellcheck:
+    name: ShellCheck scripts
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run ShellCheck
+        uses: ludeeus/action-shellcheck@2.0.0
+        with:
+          scandir: ./scripts
+          severity: warning
+          check_together: "yes"
+          format: gcc
+
+  trivy-images:
+    name: Trivy image scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: api
+            image: devops-control-center-api:security
+            dockerfile: apps/api/Dockerfile
+            build_args: ""
+          - name: web
+            image: devops-control-center-web:security
+            dockerfile: apps/web/Dockerfile
+            build_args: >-
+              --build-arg VITE_API_URL=/api
+              --build-arg VITE_API_DOCS_URL=/api/docs
+              --build-arg VITE_PROMETHEUS_URL=http://localhost:9090
+              --build-arg VITE_GRAFANA_URL=http://localhost:3001
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            -f "${{ matrix.dockerfile }}" \
+            -t "${{ matrix.image }}" \
+            ${{ matrix.build_args }} \
+            .
+
+      - name: Run Trivy image scan for SARIF
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: ${{ matrix.image }}
+          scanners: vuln,secret,misconfig
+          ignore-unfixed: true
+          format: sarif
+          output: trivy-image-${{ matrix.name }}.sarif
+          severity: HIGH,CRITICAL
+          exit-code: "0"
+          hide-progress: true
+
+      - name: Upload Trivy image SARIF
+        if: always() && github.event_name != 'pull_request'
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-image-${{ matrix.name }}.sarif
+          category: trivy-image-${{ matrix.name }}
+
+      - name: Run Trivy image quality gate
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: ${{ matrix.image }}
+          scanners: vuln,secret,misconfig
+          ignore-unfixed: true
+          format: table
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+          hide-progress: true
