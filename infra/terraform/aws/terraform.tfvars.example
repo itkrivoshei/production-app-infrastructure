@@ -1,0 +1,18 @@
+project_name = "devops-control-center"
+environment  = "dev"
+aws_region   = "eu-central-1"
+owner        = "portfolio"
+
+# ECR repositories are safe to describe, but apply still requires AWS credentials.
+force_delete_ecr = false
+
+# Keep disabled unless you intentionally want to create an EC2 instance.
+enable_ec2_demo = false
+instance_type   = "t3.micro"
+key_name        = null
+
+allowed_http_cidr_blocks = ["0.0.0.0/0"]
+allowed_ssh_cidr_blocks  = []
+
+api_image = "ghcr.io/itkrivoshei/devops-control-center-api:latest"
+web_image = "ghcr.io/itkrivoshei/devops-control-center-web:latest"
