@@ -75,3 +75,63 @@ Then query:
 - `app_load_events_total`
 - `app_errors_total`
 - `rate(http_requests_total[1m])`
+
+## Grafana
+
+Grafana runs on:
+
+```text
+http://localhost:3001
+```
+
+The dashboard is provisioned automatically from:
+
+```text
+ops/grafana/dashboards/devops-control-center.json
+```
+
+Provisioning configuration:
+
+```text
+ops/grafana/provisioning/datasources/prometheus.yml
+ops/grafana/provisioning/dashboards/dashboards.yml
+```
+
+Dashboard URL:
+
+```text
+http://localhost:3001/d/devops-control-center/devops-control-center
+```
+
+### Panels
+
+The dashboard includes:
+
+- API target status
+- API uptime
+- total requests
+- total demo errors
+- requests per minute
+- response time p95
+- error rate
+- CPU usage
+- memory usage
+- load events
+
+### Verify Dashboard Changes
+
+Generate load:
+
+```bash
+curl -X POST http://localhost:8088/api/load/cpu \
+  -H "Content-Type: application/json" \
+  -d '{"durationMs":1000}'
+```
+
+Generate an intentional error:
+
+```bash
+curl -i -X POST http://localhost:8088/api/load/errors
+```
+
+Then open Grafana and verify that request, error, latency, and load-event panels change.

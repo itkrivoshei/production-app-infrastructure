@@ -48,5 +48,7 @@ check_json_contains "API direct" "http://localhost:${API_PORT}/health" '"status"
 check_url "Prometheus readiness" "http://localhost:${PROMETHEUS_PORT}/-/ready"
 check_json_contains "Prometheus API target" "http://localhost:${PROMETHEUS_PORT}/api/v1/targets" '"job":"devops-control-center-api"'
 check_json_contains "Prometheus target health" "http://localhost:${PROMETHEUS_PORT}/api/v1/targets" '"health":"up"'
+check_url "Grafana health" "http://localhost:${GRAFANA_PORT}/api/health"
+check_json_contains "Grafana dashboard provisioning" "http://localhost:${GRAFANA_PORT}/api/search?query=DevOps" '"title":"DevOps Control Center"'
 
 success "All health checks passed."
