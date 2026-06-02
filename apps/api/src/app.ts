@@ -13,7 +13,7 @@ import { versionRoutes } from './routes/version.js';
 
 export async function buildApp() {
   const logger =
-    config.appEnv === 'local'
+    config.logFormat === 'pretty'
       ? {
           level: config.logLevel,
           base: {
