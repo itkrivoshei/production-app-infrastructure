@@ -7,23 +7,7 @@ import { SectionHeader } from '@/components/dashboard/SectionHeader';
 import { Button } from '@/components/ui/button';
 import { api } from '@/lib/api';
 import { config } from '@/lib/config';
-
-function parseMetricFamilies(metricsText = '') {
-  const counts = new Map<string, number>();
-
-  metricsText
-    .split('\n')
-    .filter((line) => line && !line.startsWith('#'))
-    .forEach((line) => {
-      const family = line.split(/[{\s]/)[0] ?? 'unknown';
-      counts.set(family, (counts.get(family) ?? 0) + 1);
-    });
-
-  return Array.from(counts.entries())
-    .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 8);
-}
+import { parseMetricFamilies } from '@/lib/metrics';
 
 export function Metrics() {
   const metrics = useQuery({
