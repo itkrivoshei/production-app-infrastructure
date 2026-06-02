@@ -7,13 +7,34 @@ source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib/common.sh"
 cd_project_root
 require_command curl
 
+HTTP_RETRIES="${HTTP_RETRIES:-15}"
+HTTP_RETRY_DELAY_SECONDS="${HTTP_RETRY_DELAY_SECONDS:-2}"
+
+fetch_with_retry() {
+  local name="$1"
+  local url="$2"
+  local response
+
+  for attempt in $(seq 1 "$HTTP_RETRIES"); do
+    if response="$(curl -fsS --max-time 5 "$url")"; then
+      printf "%s" "$response"
+      return 0
+    fi
+
+    info "${name} is not ready yet (${attempt}/${HTTP_RETRIES})" >&2
+    sleep "$HTTP_RETRY_DELAY_SECONDS"
+  done
+
+  return 1
+}
+
 check_url() {
   local name="$1"
   local url="$2"
 
   info "Checking ${name}: ${url}"
 
-  if curl -fsS --max-time 5 "$url" >/dev/null; then
+  if fetch_with_retry "$name" "$url" >/dev/null; then
     success "${name} is healthy"
   else
     die "${name} health check failed: ${url}"
@@ -28,7 +49,9 @@ check_json_contains() {
   info "Checking ${name}: ${url}"
 
   local response
-  response="$(curl -fsS --max-time 5 "$url")"
+  if ! response="$(fetch_with_retry "$name" "$url")"; then
+    die "${name} health check failed: ${url}"
+  fi
 
   if [[ "$response" == *"$expected"* ]]; then
     success "${name} returned expected response"
