@@ -54,7 +54,7 @@ wait_for_api() {
   info "Waiting for rollback API health: ${url}"
 
   for attempt in $(seq 1 30); do
-    if curl -fsS --max-time 3 "$url" >/dev/null; then
+    if curl -fs --max-time 3 "$url" >/dev/null; then
       success "Rollback API is healthy"
       return 0
     fi
