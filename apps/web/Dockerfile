@@ -31,7 +31,8 @@ RUN pnpm --filter @production-app-infrastructure/web build
 FROM nginxinc/nginx-unprivileged:1.29-alpine3.23 AS runtime
 
 USER root
-RUN apk add --no-cache "libxml2=2.13.9-r1"
+RUN apk add --no-cache "libxml2=2.13.9-r1" \
+  && if apk info -e curl >/dev/null 2>&1; then apk del curl; fi
 
 COPY ops/nginx/web.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/apps/web/dist /usr/share/nginx/html

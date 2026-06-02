@@ -12,6 +12,17 @@ locals {
   )
 }
 
+resource "aws_kms_key" "ecr" {
+  description             = "KMS key for ${local.name_prefix} ECR repositories"
+  deletion_window_in_days = 7
+  enable_key_rotation     = true
+}
+
+resource "aws_kms_alias" "ecr" {
+  name          = "alias/${local.name_prefix}-ecr"
+  target_key_id = aws_kms_key.ecr.key_id
+}
+
 resource "aws_ecr_repository" "api" {
   name                 = "${local.name_prefix}-api"
   image_tag_mutability = "IMMUTABLE"
@@ -22,7 +33,8 @@ resource "aws_ecr_repository" "api" {
   }
 
   encryption_configuration {
-    encryption_type = "AES256"
+    encryption_type = "KMS"
+    kms_key         = aws_kms_key.ecr.arn
   }
 }
 
@@ -36,7 +48,8 @@ resource "aws_ecr_repository" "web" {
   }
 
   encryption_configuration {
-    encryption_type = "AES256"
+    encryption_type = "KMS"
+    kms_key         = aws_kms_key.ecr.arn
   }
 }
 
