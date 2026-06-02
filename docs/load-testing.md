@@ -25,14 +25,14 @@ pnpm k6:docker:stress
 ## Run With Local k6
 
 ```bash
-TARGET_BASE_URL=http://localhost:8088 pnpm k6:smoke
-TARGET_BASE_URL=http://localhost:8088 pnpm k6:load
+TARGET_BASE_URL=http://localhost:3000 pnpm k6:smoke
+TARGET_BASE_URL=http://localhost:3000 pnpm k6:load
 ```
 
 ## Verify Effects
 
 ```bash
-curl -fsS http://localhost:8088/api/metrics | grep app_load_events_total
+curl -fsS http://localhost:8080/metrics | grep app_load_events_total
 curl -G -fsS http://localhost:3100/loki/api/v1/query_range \
   --data-urlencode 'query={service="api"} |= "k6"' \
   --data-urlencode 'limit=5'

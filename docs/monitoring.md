@@ -10,7 +10,7 @@ targets:
 The public metrics endpoint is:
 
 ```text
-http://localhost:8088/api/metrics
+http://localhost:8080/metrics
 ```
 
 ## Verify
@@ -18,7 +18,7 @@ http://localhost:8088/api/metrics
 ```bash
 docker compose up --build -d
 ./scripts/healthcheck.sh
-curl -fsS http://localhost:8088/api/metrics | head
+curl -fsS http://localhost:8080/metrics | head
 curl -fsS http://localhost:9090/api/v1/targets | grep devops-control-center-api
 ```
 
@@ -51,9 +51,9 @@ http://localhost:3001
 Generate activity:
 
 ```bash
-curl -fsS -X POST http://localhost:8088/api/load/cpu \
+curl -fsS -X POST http://localhost:8080/load/cpu \
   -H "Content-Type: application/json" \
   -d '{"durationMs":1000}'
 
-curl -i -X POST http://localhost:8088/api/load/errors
+curl -i -X POST http://localhost:8080/load/errors
 ```

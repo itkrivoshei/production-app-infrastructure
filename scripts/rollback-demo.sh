@@ -10,16 +10,23 @@ ROLLBACK_PORT="${ROLLBACK_PORT:-8091}"
 ROLLBACK_BASE_URL="${ROLLBACK_BASE_URL:-http://localhost:${ROLLBACK_PORT}}"
 CURRENT_IMAGE="${CURRENT_IMAGE:-devops-control-center-api:rollback-current}"
 PREVIOUS_IMAGE="${PREVIOUS_IMAGE:-devops-control-center-api:rollback-previous}"
-CURRENT_VERSION="${CURRENT_VERSION:-0.2.0}"
-PREVIOUS_VERSION="${PREVIOUS_VERSION:-0.1.0}"
+CURRENT_VERSION="${CURRENT_VERSION:-1.1.0}"
+PREVIOUS_VERSION="${PREVIOUS_VERSION:-1.0.0}"
 CURRENT_COMMIT="${CURRENT_COMMIT:-rollback-current}"
-PREVIOUS_COMMIT="${PREVIOUS_COMMIT:-rollback-previous}"
+DEFAULT_PREVIOUS_COMMIT="rollback-previous"
+PREVIOUS_COMMIT="${PREVIOUS_COMMIT:-$DEFAULT_PREVIOUS_COMMIT}"
 
 usage() {
   cat <<'USAGE'
 Usage:
-  ./scripts/rollback-demo.sh          Build demo images, deploy current, roll back to previous, and verify.
-  ./scripts/rollback-demo.sh --clean  Stop and remove rollback demo containers/network.
+  ./scripts/rollback-demo.sh [rollback-version]
+      Build demo images, deploy current, roll back to the selected version, and verify.
+
+  ./scripts/rollback-demo.sh v1.0.0
+      Run the rollback simulation with v1.0.0 as the rollback target.
+
+  ./scripts/rollback-demo.sh --clean
+      Stop and remove rollback demo containers/network.
 USAGE
 }
 
@@ -95,11 +102,7 @@ deploy_api() {
   assert_version "$version" "$commit"
 }
 
-main() {
-  cd_project_root
-  require_docker
-  require_command curl
-
+parse_args() {
   case "${1:-}" in
     --clean)
       clean_rollback
@@ -112,10 +115,31 @@ main() {
     "")
       ;;
     *)
-      usage
-      die "Unknown argument: $1"
+      if [[ "$1" == -* ]]; then
+        usage
+        die "Unknown argument: $1"
+      fi
+
+      if [[ $# -gt 1 ]]; then
+        usage
+        die "Rollback demo accepts one optional rollback version."
+      fi
+
+      PREVIOUS_VERSION="$1"
+
+      if [[ "$PREVIOUS_COMMIT" == "$DEFAULT_PREVIOUS_COMMIT" ]]; then
+        PREVIOUS_COMMIT="rollback-${PREVIOUS_VERSION#v}"
+      fi
       ;;
   esac
+}
+
+main() {
+  cd_project_root
+  require_docker
+  require_command curl
+
+  parse_args "$@"
 
   clean_rollback
   build_demo_images

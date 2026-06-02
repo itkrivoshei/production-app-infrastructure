@@ -1,5 +1,6 @@
 import { Activity } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { config } from '@/lib/config';
 import { Sidebar } from './Sidebar';
 
 type AppLayoutProps = {
@@ -12,6 +13,12 @@ export function AppLayout({ children }: AppLayoutProps) {
       <div className="flex min-h-screen">
         <Sidebar />
         <main className="min-w-0 flex-1">
+          {config.isStaticDemo ? (
+            <div className="border-b border-cyan-200 bg-cyan-50 px-4 py-3 text-sm font-medium text-cyan-950 sm:px-6 lg:px-8">
+              This online demo is a static UI preview. The full observability stack runs locally
+              with Docker Compose.
+            </div>
+          ) : null}
           <header className="flex h-16 items-center gap-3 border-b border-slate-200 bg-white px-4 lg:hidden">
             <span className="flex size-9 items-center justify-center rounded-md bg-slate-950 text-cyan-300">
               <Activity className="size-5" aria-hidden="true" />

@@ -8,6 +8,7 @@ import type {
   VersionResponse
 } from '@/types/api';
 import { config } from './config';
+import { mockApi } from './mockApi';
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${config.apiUrl}${path}`, {
@@ -26,7 +27,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-export const api = {
+const liveApi = {
   health: () => request<HealthResponse>('/health'),
   ready: () => request<ReadyResponse>('/ready'),
   version: () => request<VersionResponse>('/version'),
@@ -63,3 +64,7 @@ export const api = {
       body: JSON.stringify({ level, message })
     })
 };
+
+export type ApiClient = typeof liveApi;
+
+export const api: ApiClient = config.isStaticDemo ? mockApi : liveApi;

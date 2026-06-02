@@ -29,7 +29,7 @@ NGINX_PORT=18088 API_PORT=18080 docker compose up --build -d
 ## Prometheus Target Is Down
 
 ```bash
-curl -fsS http://localhost:8088/api/metrics | head
+curl -fsS http://localhost:8080/metrics | head
 curl -fsS http://localhost:9090/api/v1/targets
 docker compose logs prometheus
 ```
@@ -39,7 +39,7 @@ docker compose logs prometheus
 Generate one:
 
 ```bash
-curl -fsS -X POST http://localhost:8088/api/logs/generate \
+curl -fsS -X POST http://localhost:8080/logs/generate \
   -H "Content-Type: application/json" \
   -d '{"level":"info","message":"debug loki"}'
 ```

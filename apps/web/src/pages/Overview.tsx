@@ -1,21 +1,14 @@
+import { useMemo } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { Activity, AlertTriangle, BookOpen, DatabaseZap, FileText, Gauge } from 'lucide-react';
+import { Activity, AlertTriangle, BookOpen, DatabaseZap, FileText, Gauge, RefreshCw } from 'lucide-react';
 import { MetricCard } from '@/components/dashboard/MetricCard';
 import { SectionHeader } from '@/components/dashboard/SectionHeader';
 import { StatusCard } from '@/components/dashboard/StatusCard';
 import { Button } from '@/components/ui/button';
 import { api } from '@/lib/api';
 import { config } from '@/lib/config';
-
-function formatTime(value?: string) {
-  if (!value) return 'n/a';
-
-  return new Intl.DateTimeFormat(undefined, {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit'
-  }).format(new Date(value));
-}
+import { summarizeMetrics } from '@/lib/metrics';
+import { queryClient } from '@/lib/queryClient';
 
 function formatUptime(seconds?: number) {
   if (!seconds) return '0s';
@@ -33,20 +26,51 @@ function formatUptime(seconds?: number) {
   return `${hours}h ${remainingMinutes}m`;
 }
 
+function formatNumber(value: number) {
+  return new Intl.NumberFormat().format(Math.round(value));
+}
+
+function refreshOverviewQueries() {
+  const queryKeys = [['health'], ['ready'], ['version'], ['status'], ['metrics-text']] as const;
+
+  queryKeys.forEach((queryKey) => {
+    void queryClient.invalidateQueries({ queryKey });
+  });
+}
+
 export function Overview() {
   const health = useQuery({ queryKey: ['health'], queryFn: api.health });
   const ready = useQuery({ queryKey: ['ready'], queryFn: api.ready });
   const version = useQuery({ queryKey: ['version'], queryFn: api.version });
   const status = useQuery({ queryKey: ['status'], queryFn: api.status });
+  const metrics = useQuery({
+    queryKey: ['metrics-text'],
+    queryFn: api.metricsText,
+    refetchInterval: 10_000
+  });
 
-  const cpuLoad = useMutation({ mutationFn: () => api.generateCpuLoad(500) });
-  const demoError = useMutation({ mutationFn: () => api.generateErrors() });
+  const cpuLoad = useMutation({
+    mutationFn: () => api.generateCpuLoad(500),
+    onSuccess: refreshOverviewQueries
+  });
+  const demoError = useMutation({
+    mutationFn: () => api.generateErrors(),
+    onSuccess: refreshOverviewQueries
+  });
   const demoLog = useMutation({
-    mutationFn: () => api.generateLog('info', 'Overview generated demo log')
+    mutationFn: () => api.generateLog('info', 'Overview generated demo log'),
+    onSuccess: refreshOverviewQueries
   });
 
   const isApiOk = health.data?.status === 'ok';
   const isReady = ready.data?.status === 'ready';
+  const metricsSummary = useMemo(() => summarizeMetrics(metrics.data), [metrics.data]);
+  const isRefreshing =
+    health.isFetching ||
+    ready.isFetching ||
+    version.isFetching ||
+    status.isFetching ||
+    metrics.isFetching;
 
   return (
     <div>
@@ -55,6 +79,10 @@ export function Overview() {
         description="Live API status, release metadata, and demo operations."
         action={
           <>
+            <Button variant="outline" onClick={refreshOverviewQueries} disabled={isRefreshing}>
+              <RefreshCw className="size-4" aria-hidden="true" />
+              <span>{isRefreshing ? 'Checking' : 'Run Health Check'}</span>
+            </Button>
             <Button asChild variant="outline">
               <a href={config.apiDocsUrl} target="_blank" rel="noreferrer">
                 <BookOpen className="size-4" aria-hidden="true" />
@@ -67,43 +95,64 @@ export function Overview() {
                 <span>Grafana</span>
               </a>
             </Button>
+            <Button asChild variant="outline">
+              <a href={config.prometheusUrl} target="_blank" rel="noreferrer">
+                <Gauge className="size-4" aria-hidden="true" />
+                <span>Prometheus</span>
+              </a>
+            </Button>
           </>
         }
       />
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         <StatusCard
-          title="API Health"
-          value={health.isLoading ? 'Checking' : health.data?.status ?? 'Unavailable'}
+          title="API Status"
+          value={health.isLoading ? 'Checking' : isApiOk ? 'Healthy' : 'Unhealthy'}
           status={isApiOk ? 'ok' : health.isError ? 'error' : 'unknown'}
           description="GET /health"
         />
         <StatusCard
           title="Readiness"
-          value={ready.isLoading ? 'Checking' : ready.data?.status ?? 'Unavailable'}
+          value={ready.isLoading ? 'Checking' : isReady ? 'Ready' : 'Not Ready'}
           status={isReady ? 'ok' : ready.isError ? 'error' : 'unknown'}
           description="GET /ready"
         />
         <MetricCard
-          title="Version"
-          value={version.data?.version ?? 'unknown'}
-          description={`Commit: ${version.data?.commit ?? 'unknown'}`}
-        />
-        <MetricCard
           title="Environment"
-          value={version.data?.environment ?? 'unknown'}
+          value={version.data?.environment ?? status.data?.environment ?? 'unknown'}
           description={version.data?.service ?? 'devops-control-center-api'}
         />
-      </div>
-
-      <div className="mt-4 grid gap-4 md:grid-cols-3">
+        <MetricCard
+          title="Version"
+          value={version.data?.version ?? 'unknown'}
+          description="GET /version"
+        />
+        <MetricCard
+          title="Commit SHA"
+          value={version.data?.commit ?? status.data?.commit ?? 'unknown'}
+          description="Release metadata"
+        />
         <MetricCard
           title="Uptime"
-          value={formatUptime(status.data?.uptime)}
+          value={formatUptime(status.data?.uptime ?? health.data?.uptime)}
           description="Backend process uptime"
         />
-        <MetricCard title="Last Health Check" value={formatTime(health.data?.timestamp)} />
-        <MetricCard title="Last Status Check" value={formatTime(status.data?.timestamp)} />
+        <MetricCard
+          title="Requests"
+          value={formatNumber(metricsSummary.requests)}
+          description="Sum of http_requests_total"
+        />
+        <MetricCard
+          title="Errors"
+          value={formatNumber(metricsSummary.errors)}
+          description="Sum of app_errors_total"
+        />
+        <MetricCard
+          title="Error Rate"
+          value={`${metricsSummary.errorRate.toFixed(1)}%`}
+          description="Errors divided by requests"
+        />
       </div>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-3">

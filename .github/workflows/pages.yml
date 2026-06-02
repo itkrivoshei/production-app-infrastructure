@@ -1,0 +1,73 @@
+name: GitHub Pages Demo
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build static UI preview
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          version: 11.4.0
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build static dashboard preview
+        run: pnpm --filter @production-app-infrastructure/web build
+        env:
+          VITE_DEMO_MODE: static
+          VITE_BASE_PATH: /production-app-infrastructure/
+          VITE_API_DOCS_URL: https://github.com/itkrivoshei/production-app-infrastructure/blob/main/docs/demo.md
+          VITE_PROMETHEUS_URL: https://github.com/itkrivoshei/production-app-infrastructure/blob/main/docs/demo.md
+          VITE_GRAFANA_URL: https://github.com/itkrivoshei/production-app-infrastructure/blob/main/docs/demo.md
+          VITE_REPOSITORY_URL: https://github.com/itkrivoshei/production-app-infrastructure
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/web/dist
+
+  deploy:
+    name: Deploy static UI preview
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
