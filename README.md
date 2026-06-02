@@ -1,6 +1,16 @@
+<div align="center">
+
 # Production App Infrastructure
 
-Production-like DevOps Control Center for a small API and dashboard. The project is built to prove the full path from local development to Dockerized operations, observability, load testing, CI/CD, security scans, rollback, optional Terraform, and Project 2 Kubernetes reuse.
+Production-like DevOps Control Center for a small API and dashboard with Docker, observability, CI/CD, security scans, rollback, and Terraform validation.
+
+[![Live demo](https://img.shields.io/badge/live-GitHub%20Pages-2ea44f?style=for-the-badge&logo=githubpages&logoColor=white)](https://itkrivoshei.github.io/production-app-infrastructure/)
+[![CI](https://img.shields.io/github/actions/workflow/status/itkrivoshei/production-app-infrastructure/ci.yml?branch=main&style=for-the-badge&label=ci&logo=githubactions&logoColor=white)](https://github.com/itkrivoshei/production-app-infrastructure/actions/workflows/ci.yml)
+[![CodeQL](https://img.shields.io/github/actions/workflow/status/itkrivoshei/production-app-infrastructure/codeql.yml?branch=main&style=for-the-badge&label=codeql&logo=github&logoColor=white)](https://github.com/itkrivoshei/production-app-infrastructure/actions/workflows/codeql.yml)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ed?style=for-the-badge&logo=docker&logoColor=white)](docker-compose.yml)
+[![License](https://img.shields.io/github/license/itkrivoshei/production-app-infrastructure?style=for-the-badge)](LICENSE)
+
+</div>
 
 ## What It Demonstrates
 
