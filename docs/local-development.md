@@ -40,10 +40,11 @@ Useful URLs:
 
 | Service | URL |
 | --- | --- |
-| Dashboard | http://localhost:8088 |
-| API health | http://localhost:8088/api/health |
-| API docs | http://localhost:8088/api/docs |
-| API metrics | http://localhost:8088/api/metrics |
+| Dashboard | http://localhost:3000 |
+| API | http://localhost:8080 |
+| API health | http://localhost:8080/health |
+| API docs | http://localhost:8080/docs |
+| API metrics | http://localhost:8080/metrics |
 | Prometheus | http://localhost:9090 |
 | Grafana | http://localhost:3001 |
 | Loki | http://localhost:3100 |

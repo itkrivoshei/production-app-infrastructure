@@ -4,7 +4,7 @@
 
 ```text
 Browser
-  -> Nginx edge :8088
+  -> Nginx edge :3000
     -> web static container :8080
     -> API container :8080
       -> /metrics for Prometheus

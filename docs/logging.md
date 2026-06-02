@@ -17,7 +17,7 @@ The API writes structured Pino logs to stdout. Docker stores them with the `json
 docker compose up --build -d
 ./scripts/healthcheck.sh
 
-curl -fsS -X POST http://localhost:8088/api/logs/generate \
+curl -fsS -X POST http://localhost:8080/logs/generate \
   -H "Content-Type: application/json" \
   -d '{"level":"info","message":"manual loki check"}'
 
