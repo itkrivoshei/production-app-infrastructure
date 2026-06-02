@@ -20,8 +20,6 @@ jobs:
     name: Build static UI preview
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    outputs:
-      pages_ready: ${{ steps.pages.outputs.ready }}
 
     steps:
       - name: Checkout repository
@@ -53,24 +51,11 @@ jobs:
           VITE_REPOSITORY_URL: https://github.com/itkrivoshei/production-app-infrastructure
 
       - name: Configure GitHub Pages
-        id: configure-pages
         uses: actions/configure-pages@v5
-        continue-on-error: true
         with:
           enablement: true
 
-      - name: Detect Pages deployment readiness
-        id: pages
-        run: |
-          if [[ "${{ steps.configure-pages.outcome }}" == "success" ]]; then
-            echo "ready=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "ready=false" >> "$GITHUB_OUTPUT"
-            echo "::warning::GitHub Pages deployment is blocked until Pages is enabled for GitHub Actions. See BLOCKED_NOTES.md."
-          fi
-
       - name: Upload Pages artifact
-        if: steps.pages.outputs.ready == 'true'
         uses: actions/upload-pages-artifact@v3
         with:
           path: apps/web/dist
@@ -78,7 +63,6 @@ jobs:
   deploy:
     name: Deploy static UI preview
     needs: build
-    if: needs.build.outputs.pages_ready == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment:
