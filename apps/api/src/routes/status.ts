@@ -1,13 +1,16 @@
-import { Type } from '@sinclair/typebox';
-import type { FastifyInstance } from 'fastify';
-import type { AppConfig } from '../config.js';
+import { Type } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
+import type { AppConfig } from "../config.js";
 
-export async function statusRoutes(app: FastifyInstance, config: AppConfig): Promise<void> {
+export async function statusRoutes(
+  app: FastifyInstance,
+  config: AppConfig,
+): Promise<void> {
   app.get(
-    '/status',
+    "/status",
     {
       schema: {
-        tags: ['system'],
+        tags: ["system"],
         response: {
           200: Type.Object({
             service: Type.String(),
@@ -16,10 +19,10 @@ export async function statusRoutes(app: FastifyInstance, config: AppConfig): Pro
             environment: Type.String(),
             status: Type.String(),
             uptime: Type.Number(),
-            timestamp: Type.String()
-          })
-        }
-      }
+            timestamp: Type.String(),
+          }),
+        },
+      },
     },
     async () => {
       return {
@@ -27,10 +30,10 @@ export async function statusRoutes(app: FastifyInstance, config: AppConfig): Pro
         version: config.appVersion,
         commit: config.commitSha,
         environment: config.appEnv,
-        status: 'ok',
+        status: "ok",
         uptime: Math.round(process.uptime()),
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
-    }
+    },
   );
 }

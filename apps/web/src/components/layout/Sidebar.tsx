@@ -5,18 +5,18 @@ import {
   Gauge,
   Home,
   ScrollText,
-  Server
-} from 'lucide-react';
-import { NavLink } from 'react-router-dom';
-import { cn } from '@/lib/utils';
+  Server,
+} from "lucide-react";
+import { NavLink } from "react-router-dom";
+import { cn } from "@/lib/utils";
 
 const links = [
-  { to: '/', label: 'Overview', icon: Home },
-  { to: '/metrics', label: 'Metrics', icon: BarChart3 },
-  { to: '/logs', label: 'Logs', icon: ScrollText },
-  { to: '/load-test', label: 'Load Test', icon: Gauge },
-  { to: '/system', label: 'System Info', icon: Server },
-  { to: '/docs', label: 'Docs', icon: FileText }
+  { to: "/", label: "Overview", icon: Home },
+  { to: "/metrics", label: "Metrics", icon: BarChart3 },
+  { to: "/logs", label: "Logs", icon: ScrollText },
+  { to: "/load-test", label: "Load Test", icon: Gauge },
+  { to: "/system", label: "System Info", icon: Server },
+  { to: "/docs", label: "Docs", icon: FileText },
 ];
 
 export function Sidebar() {
@@ -28,8 +28,12 @@ export function Sidebar() {
             <Activity className="size-5" aria-hidden="true" />
           </span>
           <div>
-            <div className="text-sm font-semibold leading-tight">DevOps Control Center</div>
-            <div className="mt-1 text-xs text-slate-400">Production infrastructure</div>
+            <div className="text-sm font-semibold leading-tight">
+              DevOps Control Center
+            </div>
+            <div className="mt-1 text-xs text-slate-400">
+              Production infrastructure
+            </div>
           </div>
         </div>
       </div>
@@ -44,10 +48,10 @@ export function Sidebar() {
               to={link.to}
               className={({ isActive }) =>
                 cn(
-                  'flex h-10 items-center gap-3 rounded-md px-3 text-sm transition-colors',
+                  "flex h-10 items-center gap-3 rounded-md px-3 text-sm transition-colors",
                   isActive
-                    ? 'bg-slate-800 text-white'
-                    : 'text-slate-400 hover:bg-slate-900 hover:text-white'
+                    ? "bg-slate-800 text-white"
+                    : "text-slate-400 hover:bg-slate-900 hover:text-white",
                 )
               }
             >

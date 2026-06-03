@@ -1,11 +1,11 @@
-import { Navigate, Route, Routes } from 'react-router-dom';
-import { AppLayout } from '@/components/layout/AppLayout';
-import { Docs } from '@/pages/Docs';
-import { LoadTest } from '@/pages/LoadTest';
-import { Logs } from '@/pages/Logs';
-import { Metrics } from '@/pages/Metrics';
-import { Overview } from '@/pages/Overview';
-import { SystemInfo } from '@/pages/SystemInfo';
+import { Navigate, Route, Routes } from "react-router-dom";
+import { AppLayout } from "@/components/layout/AppLayout";
+import { Docs } from "@/pages/Docs";
+import { LoadTest } from "@/pages/LoadTest";
+import { Logs } from "@/pages/Logs";
+import { Metrics } from "@/pages/Metrics";
+import { Overview } from "@/pages/Overview";
+import { SystemInfo } from "@/pages/SystemInfo";
 
 export default function App() {
   return (

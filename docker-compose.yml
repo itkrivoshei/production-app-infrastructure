@@ -37,7 +37,7 @@ services:
           "CMD",
           "node",
           "-e",
-          "fetch('http://127.0.0.1:8080/health').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+          "fetch('http://127.0.0.1:8080/health').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
         ]
       interval: 30s
       timeout: 5s
@@ -65,7 +65,8 @@ services:
       api:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:8080/health || exit 1"]
+      test:
+        ["CMD-SHELL", "wget -q --spider http://127.0.0.1:8080/health || exit 1"]
       interval: 30s
       timeout: 5s
       start_period: 10s
@@ -88,7 +89,11 @@ services:
       web:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1/nginx-health || exit 1"]
+      test:
+        [
+          "CMD-SHELL",
+          "wget -q --spider http://127.0.0.1/nginx-health || exit 1",
+        ]
       interval: 30s
       timeout: 5s
       start_period: 10s
@@ -115,7 +120,11 @@ services:
       api:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:9090/-/ready || exit 1"]
+      test:
+        [
+          "CMD-SHELL",
+          "wget -q --spider http://127.0.0.1:9090/-/ready || exit 1",
+        ]
       interval: 30s
       timeout: 5s
       start_period: 10s
@@ -148,7 +157,11 @@ services:
       loki:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:3000/api/health || exit 1"]
+      test:
+        [
+          "CMD-SHELL",
+          "wget -q --spider http://127.0.0.1:3000/api/health || exit 1",
+        ]
       interval: 30s
       timeout: 5s
       start_period: 20s
@@ -169,7 +182,8 @@ services:
     restart: unless-stopped
     logging: *default-logging
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:3100/ready || exit 1"]
+      test:
+        ["CMD-SHELL", "wget -q --spider http://127.0.0.1:3100/ready || exit 1"]
       interval: 30s
       timeout: 5s
       start_period: 20s

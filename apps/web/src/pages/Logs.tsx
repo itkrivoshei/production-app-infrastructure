@@ -1,9 +1,9 @@
-import { useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
-import { FileText } from 'lucide-react';
-import { SectionHeader } from '@/components/dashboard/SectionHeader';
-import { Button } from '@/components/ui/button';
-import { api } from '@/lib/api';
+import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { FileText } from "lucide-react";
+import { SectionHeader } from "@/components/dashboard/SectionHeader";
+import { Button } from "@/components/ui/button";
+import { api } from "@/lib/api";
 
 type LogEntry = {
   level: string;
@@ -15,10 +15,11 @@ export function Logs() {
   const [entries, setEntries] = useState<LogEntry[]>([]);
 
   const generateLog = useMutation({
-    mutationFn: () => api.generateLog('info', 'Manual log generated from dashboard'),
+    mutationFn: () =>
+      api.generateLog("info", "Manual log generated from dashboard"),
     onSuccess: (data) => {
       setEntries((current) => [data, ...current].slice(0, 10));
-    }
+    },
   });
 
   return (
@@ -27,9 +28,14 @@ export function Logs() {
         title="Logs"
         description="Structured backend log generation for the observability pipeline."
         action={
-          <Button onClick={() => generateLog.mutate()} disabled={generateLog.isPending}>
+          <Button
+            onClick={() => generateLog.mutate()}
+            disabled={generateLog.isPending}
+          >
             <FileText className="size-4" aria-hidden="true" />
-            <span>{generateLog.isPending ? 'Generating' : 'Generate Demo Log'}</span>
+            <span>
+              {generateLog.isPending ? "Generating" : "Generate Demo Log"}
+            </span>
           </Button>
         }
       />
