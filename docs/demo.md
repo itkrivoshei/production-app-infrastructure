@@ -2,38 +2,50 @@
 
 This project has two demo modes:
 
-- Online UI preview: static GitHub Pages dashboard with mock data.
-- Full local demo: real Docker Compose stack with API, Prometheus, Grafana, Loki, Promtail, and k6.
+| Mode            | Purpose                                                                          |
+| --------------- | -------------------------------------------------------------------------------- |
+| Online preview  | Static GitHub Pages dashboard with mock data for quick review.                   |
+| Full local demo | Real Docker Compose stack with API, Prometheus, Grafana, Loki, Promtail, and k6. |
 
-## Quick Online Preview
+## Online Preview
+
+Open the static dashboard preview:
 
 https://itkrivoshei.github.io/production-app-infrastructure/
 
-The online preview is frontend-only and uses mock data. It is designed for quick portfolio review. The live backend, metrics, logs, and load tests run in the full local demo.
+The online preview is frontend-only and uses mock data. Backend health checks, metrics, logs, load testing, and rollback workflows run in the full local demo.
 
 ## Full Local Demo
 
 Start the real stack:
 
 ```bash
-docker compose up --build
+docker compose up --build -d
 ```
-
-Open:
-
-| Service | URL |
-| --- | --- |
-| Dashboard | http://localhost:3000 |
-| API | http://localhost:8080 |
-| API docs | http://localhost:8080/docs |
-| Prometheus | http://localhost:9090 |
-| Grafana | http://localhost:3001 |
-| Loki | http://localhost:3100 |
 
 Run the health gate:
 
 ```bash
 ./scripts/healthcheck.sh
+```
+
+Open the local services:
+
+| Service     | URL                           |
+| ----------- | ----------------------------- |
+| Dashboard   | http://localhost:3000         |
+| API         | http://localhost:8080         |
+| API health  | http://localhost:8080/health  |
+| API docs    | http://localhost:8080/docs    |
+| API metrics | http://localhost:8080/metrics |
+| Prometheus  | http://localhost:9090         |
+| Grafana     | http://localhost:3001         |
+| Loki        | http://localhost:3100         |
+
+Stop the stack:
+
+```bash
+docker compose down
 ```
 
 ## Demo 1: Start The Stack
@@ -47,7 +59,7 @@ docker compose ps
 Show:
 
 - Dashboard opens at http://localhost:3000.
-- API health is green at http://localhost:8080/health.
+- API health returns green at http://localhost:8080/health.
 - Prometheus target `devops-control-center-api` is `UP`.
 - Grafana opens with the provisioned DevOps Control Center dashboard.
 
@@ -63,11 +75,12 @@ pnpm k6:docker:load
 
 Show:
 
-- Request counters grow on the dashboard.
+- Request counters increase on the dashboard.
 - Response timing changes in Grafana.
-- API logs appear through the Loki data source in Grafana Explore.
+- API logs appear through the Loki datasource in Grafana Explore.
+- k6 output shows request rate and latency data.
 
-## Demo 3: Generate Errors
+## Demo 3: Generate Controlled Errors
 
 From the dashboard, click `Generate Errors`.
 
@@ -84,7 +97,7 @@ Show:
 - Grafana error panels change.
 - Loki contains the generated error log.
 
-## Demo 4: Restart Service
+## Demo 4: Restart A Service
 
 ```bash
 ./scripts/restart.sh api
@@ -95,14 +108,13 @@ Show:
 
 - API container restarts.
 - Health briefly changes during restart.
-- Health returns to green.
+- Health returns to green after the service is ready again.
 - Logs show service startup after restart.
 
 ## Demo 5: Rollback Simulation
 
 ```bash
 ./scripts/rollback-demo.sh v1.0.0
-./scripts/rollback-demo.sh --clean
 ```
 
 Show:
@@ -113,16 +125,36 @@ Show:
 - `/version` matches the rollback version.
 - Health checks pass after rollback.
 
+Clean up the rollback demo:
+
+```bash
+./scripts/rollback-demo.sh --clean
+```
+
+## Recommended Demo Flow
+
+For a short walkthrough, use this order:
+
+1. Open the dashboard.
+2. Show API health and API docs.
+3. Show Prometheus target status.
+4. Open Grafana dashboard.
+5. Generate load.
+6. Generate controlled errors.
+7. Show logs in Grafana Explore through Loki.
+8. Restart the API and run the health gate.
+9. Run the rollback simulation.
+
 ## Screenshot Proof
 
 Recommended files:
 
-| Proof | File |
-| --- | --- |
-| Dashboard overview | `docs/screenshots/dashboard.png` |
-| Grafana dashboard | `docs/screenshots/grafana.png` |
+| Proof                             | File                             |
+| --------------------------------- | -------------------------------- |
+| Dashboard overview                | `docs/screenshots/dashboard.png` |
+| Grafana dashboard                 | `docs/screenshots/grafana.png`   |
 | Loki logs through Grafana Explore | `docs/screenshots/loki-logs.png` |
-| k6 load evidence | `docs/screenshots/k6-load.png` |
-| Rollback evidence | `docs/screenshots/rollback.png` |
+| k6 load evidence                  | `docs/screenshots/k6-load.png`   |
+| Rollback evidence                 | `docs/screenshots/rollback.png`  |
 
 Capture instructions are in [docs/screenshots/README.md](screenshots/README.md).

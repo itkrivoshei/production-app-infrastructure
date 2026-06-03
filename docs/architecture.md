@@ -1,50 +1,90 @@
 # Architecture
 
+## Overview
+
+This project runs a small production-style local stack behind an Nginx edge container.
+
+Nginx is the public local entrypoint. It serves the dashboard and proxies API traffic, while Prometheus, Grafana, Loki, Promtail, and k6 provide local observability and reliability testing.
+
 ## Local Stack
 
-```text
-Browser
-  -> Nginx edge :3000
-    -> web static container :8080
-    -> API container :8080
-      -> /metrics for Prometheus
-      -> stdout JSON logs for Promtail
+```mermaid
+flowchart LR
+  Browser["Browser"] --> Nginx["Nginx edge :3000"]
 
-Prometheus -> API /metrics
-Grafana -> Prometheus + Loki datasources
-Promtail -> Docker logs -> Loki
-k6 -> Nginx edge
+  Nginx --> Web["web container :8080"]
+  Nginx --> API["api container :8080"]
+
+  API --> Metrics["/metrics"]
+  API --> Logs["stdout/stderr JSON logs"]
+
+  Prometheus["Prometheus :9090"] --> Metrics
+  Logs --> Promtail["Promtail :9080"]
+  Promtail --> Loki["Loki :3100"]
+
+  Grafana["Grafana :3001"] --> Prometheus
+  Grafana --> Loki
+
+  K6["k6 tests"] --> Nginx
 ```
+
+## Request Flow
+
+| Flow                       | Description                                                             |
+| -------------------------- | ----------------------------------------------------------------------- |
+| Browser -> Nginx -> web    | Serves the React/Vite dashboard through the local Nginx edge.           |
+| Browser -> Nginx -> API    | Proxies `/api/*` requests to the Fastify API container.                 |
+| Prometheus -> API          | Scrapes application metrics from the API metrics endpoint.              |
+| API -> stdout/stderr       | Emits structured JSON logs for container log collection.                |
+| Promtail -> Loki           | Discovers Docker containers and ships logs to Loki.                     |
+| Grafana -> Prometheus/Loki | Reads metrics and logs through provisioned datasources.                 |
+| k6 -> Nginx                | Runs smoke, load, and stress tests against the public local entrypoint. |
 
 ## Services
 
-| Service | Purpose |
-| --- | --- |
-| `api` | Fastify API with health, readiness, OpenAPI, metrics, demo load, and demo logs. |
-| `web` | React dashboard built by Vite and served by unprivileged Nginx. |
-| `nginx` | Public local entrypoint and reverse proxy. |
-| `prometheus` | Scrapes API metrics. |
-| `grafana` | Provisioned dashboards and datasources. |
-| `loki` | Stores local log streams. |
-| `promtail` | Discovers Docker containers and ships logs to Loki. |
-| `k6` | Optional Compose profile for smoke/load/stress testing. |
+| Service      | Purpose                                                                                  |
+| ------------ | ---------------------------------------------------------------------------------------- |
+| `api`        | Fastify API with health, readiness, OpenAPI, metrics, demo load, and demo log endpoints. |
+| `web`        | React dashboard built by Vite and served by unprivileged Nginx.                          |
+| `nginx`      | Public local entrypoint and reverse proxy for dashboard and API traffic.                 |
+| `prometheus` | Scrapes API metrics and stores local time-series data.                                   |
+| `grafana`    | Provides provisioned dashboards and datasources for metrics and logs.                    |
+| `loki`       | Stores local log streams collected from Docker containers.                               |
+| `promtail`   | Discovers Docker containers and ships structured logs to Loki.                           |
+| `k6`         | Optional Compose profile for smoke, load, and stress testing.                            |
 
 ## Runtime Decisions
 
 - API and web images use multi-stage Docker builds.
 - Runtime containers use non-root users where practical.
-- Application config is environment-based; frontend source defaults to relative paths.
-- Logs go to stdout/stderr so Docker, Promtail, and future Kubernetes logging can collect them.
-- Compose healthchecks mirror the endpoints Kubernetes probes can reuse later.
+- Nginx is the only public local entrypoint for browser traffic.
+- Frontend API calls use relative paths so the same build works behind Nginx.
+- Application configuration is environment-based.
+- Logs go to `stdout` and `stderr` so Docker, Promtail, and future Kubernetes logging can collect them.
+- Compose healthchecks mirror endpoints that Kubernetes probes can reuse later.
+- Observability is local-first and runs through Docker Compose without external services.
 
-## Main Paths
+## Routing Model
 
-| Path | Meaning |
-| --- | --- |
-| `/` | Dashboard |
-| `/api/health` | Liveness |
-| `/api/ready` | Readiness |
-| `/api/version` | Version and commit metadata |
-| `/api/metrics` | Prometheus metrics |
-| `/api/docs` | Swagger UI |
-| `/api/logs/generate` | Demo structured log generator |
+| Route      | Target                                        |
+| ---------- | --------------------------------------------- |
+| `/`        | Dashboard served through Nginx                |
+| `/api/*`   | API traffic proxied through Nginx             |
+| `/metrics` | API metrics endpoint scraped by Prometheus    |
+| `/docs`    | API documentation served by the API container |
+
+For local service URLs and commands, see the root [README](../README.md).
+
+## Kubernetes Handoff
+
+The local stack is designed so core runtime concepts can map cleanly to a future Kubernetes setup.
+
+| Local Compose Concept    | Kubernetes Equivalent                |
+| ------------------------ | ------------------------------------ |
+| Compose healthchecks     | Liveness and readiness probes        |
+| Environment variables    | ConfigMaps and Secrets               |
+| Nginx edge               | Ingress or gateway layer             |
+| Docker logs              | Cluster log collection               |
+| Prometheus scrape target | ServiceMonitor or scrape config      |
+| Container images         | Registry-published deployment images |
+| Rollback demo tags       | Deployment image rollback            |

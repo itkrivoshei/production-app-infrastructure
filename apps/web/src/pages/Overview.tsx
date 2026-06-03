@@ -1,17 +1,25 @@
-import { useMemo } from 'react';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { Activity, AlertTriangle, BookOpen, DatabaseZap, FileText, Gauge, RefreshCw } from 'lucide-react';
-import { MetricCard } from '@/components/dashboard/MetricCard';
-import { SectionHeader } from '@/components/dashboard/SectionHeader';
-import { StatusCard } from '@/components/dashboard/StatusCard';
-import { Button } from '@/components/ui/button';
-import { api } from '@/lib/api';
-import { config } from '@/lib/config';
-import { summarizeMetrics } from '@/lib/metrics';
-import { queryClient } from '@/lib/queryClient';
+import { useMemo } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import {
+  Activity,
+  AlertTriangle,
+  BookOpen,
+  DatabaseZap,
+  FileText,
+  Gauge,
+  RefreshCw,
+} from "lucide-react";
+import { MetricCard } from "@/components/dashboard/MetricCard";
+import { SectionHeader } from "@/components/dashboard/SectionHeader";
+import { StatusCard } from "@/components/dashboard/StatusCard";
+import { Button } from "@/components/ui/button";
+import { api } from "@/lib/api";
+import { config } from "@/lib/config";
+import { summarizeMetrics } from "@/lib/metrics";
+import { queryClient } from "@/lib/queryClient";
 
 function formatUptime(seconds?: number) {
-  if (!seconds) return '0s';
+  if (!seconds) return "0s";
 
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = seconds % 60;
@@ -31,7 +39,13 @@ function formatNumber(value: number) {
 }
 
 function refreshOverviewQueries() {
-  const queryKeys = [['health'], ['ready'], ['version'], ['status'], ['metrics-text']] as const;
+  const queryKeys = [
+    ["health"],
+    ["ready"],
+    ["version"],
+    ["status"],
+    ["metrics-text"],
+  ] as const;
 
   queryKeys.forEach((queryKey) => {
     void queryClient.invalidateQueries({ queryKey });
@@ -39,32 +53,35 @@ function refreshOverviewQueries() {
 }
 
 export function Overview() {
-  const health = useQuery({ queryKey: ['health'], queryFn: api.health });
-  const ready = useQuery({ queryKey: ['ready'], queryFn: api.ready });
-  const version = useQuery({ queryKey: ['version'], queryFn: api.version });
-  const status = useQuery({ queryKey: ['status'], queryFn: api.status });
+  const health = useQuery({ queryKey: ["health"], queryFn: api.health });
+  const ready = useQuery({ queryKey: ["ready"], queryFn: api.ready });
+  const version = useQuery({ queryKey: ["version"], queryFn: api.version });
+  const status = useQuery({ queryKey: ["status"], queryFn: api.status });
   const metrics = useQuery({
-    queryKey: ['metrics-text'],
+    queryKey: ["metrics-text"],
     queryFn: api.metricsText,
-    refetchInterval: 10_000
+    refetchInterval: 10_000,
   });
 
   const cpuLoad = useMutation({
     mutationFn: () => api.generateCpuLoad(500),
-    onSuccess: refreshOverviewQueries
+    onSuccess: refreshOverviewQueries,
   });
   const demoError = useMutation({
     mutationFn: () => api.generateErrors(),
-    onSuccess: refreshOverviewQueries
+    onSuccess: refreshOverviewQueries,
   });
   const demoLog = useMutation({
-    mutationFn: () => api.generateLog('info', 'Overview generated demo log'),
-    onSuccess: refreshOverviewQueries
+    mutationFn: () => api.generateLog("info", "Overview generated demo log"),
+    onSuccess: refreshOverviewQueries,
   });
 
-  const isApiOk = health.data?.status === 'ok';
-  const isReady = ready.data?.status === 'ready';
-  const metricsSummary = useMemo(() => summarizeMetrics(metrics.data), [metrics.data]);
+  const isApiOk = health.data?.status === "ok";
+  const isReady = ready.data?.status === "ready";
+  const metricsSummary = useMemo(
+    () => summarizeMetrics(metrics.data),
+    [metrics.data],
+  );
   const isRefreshing =
     health.isFetching ||
     ready.isFetching ||
@@ -79,9 +96,13 @@ export function Overview() {
         description="Live API status, release metadata, and demo operations."
         action={
           <>
-            <Button variant="outline" onClick={refreshOverviewQueries} disabled={isRefreshing}>
+            <Button
+              variant="outline"
+              onClick={refreshOverviewQueries}
+              disabled={isRefreshing}
+            >
               <RefreshCw className="size-4" aria-hidden="true" />
-              <span>{isRefreshing ? 'Checking' : 'Run Health Check'}</span>
+              <span>{isRefreshing ? "Checking" : "Run Health Check"}</span>
             </Button>
             <Button asChild variant="outline">
               <a href={config.apiDocsUrl} target="_blank" rel="noreferrer">
@@ -108,29 +129,33 @@ export function Overview() {
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         <StatusCard
           title="API Status"
-          value={health.isLoading ? 'Checking' : isApiOk ? 'Healthy' : 'Unhealthy'}
-          status={isApiOk ? 'ok' : health.isError ? 'error' : 'unknown'}
+          value={
+            health.isLoading ? "Checking" : isApiOk ? "Healthy" : "Unhealthy"
+          }
+          status={isApiOk ? "ok" : health.isError ? "error" : "unknown"}
           description="GET /health"
         />
         <StatusCard
           title="Readiness"
-          value={ready.isLoading ? 'Checking' : isReady ? 'Ready' : 'Not Ready'}
-          status={isReady ? 'ok' : ready.isError ? 'error' : 'unknown'}
+          value={ready.isLoading ? "Checking" : isReady ? "Ready" : "Not Ready"}
+          status={isReady ? "ok" : ready.isError ? "error" : "unknown"}
           description="GET /ready"
         />
         <MetricCard
           title="Environment"
-          value={version.data?.environment ?? status.data?.environment ?? 'unknown'}
-          description={version.data?.service ?? 'devops-control-center-api'}
+          value={
+            version.data?.environment ?? status.data?.environment ?? "unknown"
+          }
+          description={version.data?.service ?? "devops-control-center-api"}
         />
         <MetricCard
           title="Version"
-          value={version.data?.version ?? 'unknown'}
+          value={version.data?.version ?? "unknown"}
           description="GET /version"
         />
         <MetricCard
           title="Commit SHA"
-          value={version.data?.commit ?? status.data?.commit ?? 'unknown'}
+          value={version.data?.commit ?? status.data?.commit ?? "unknown"}
           description="Release metadata"
         />
         <MetricCard
@@ -162,7 +187,9 @@ export function Overview() {
           disabled={cpuLoad.isPending}
         >
           <Activity className="size-4" aria-hidden="true" />
-          <span>{cpuLoad.isPending ? 'Generating CPU Load' : 'Generate CPU Load'}</span>
+          <span>
+            {cpuLoad.isPending ? "Generating CPU Load" : "Generate CPU Load"}
+          </span>
         </Button>
         <Button
           className="h-12 justify-start"
@@ -171,7 +198,9 @@ export function Overview() {
           disabled={demoError.isPending}
         >
           <AlertTriangle className="size-4" aria-hidden="true" />
-          <span>{demoError.isPending ? 'Generating Error' : 'Generate Errors'}</span>
+          <span>
+            {demoError.isPending ? "Generating Error" : "Generate Errors"}
+          </span>
         </Button>
         <Button
           className="h-12 justify-start"
@@ -180,7 +209,7 @@ export function Overview() {
           disabled={demoLog.isPending}
         >
           <FileText className="size-4" aria-hidden="true" />
-          <span>{demoLog.isPending ? 'Generating Log' : 'Generate Logs'}</span>
+          <span>{demoLog.isPending ? "Generating Log" : "Generate Logs"}</span>
         </Button>
       </div>
 
@@ -190,7 +219,9 @@ export function Overview() {
             <DatabaseZap className="size-5" aria-hidden="true" />
           </span>
           <div>
-            <h2 className="text-base font-semibold text-slate-950">Backend endpoint source</h2>
+            <h2 className="text-base font-semibold text-slate-950">
+              Backend endpoint source
+            </h2>
             <p className="mt-1 text-sm text-slate-500">{config.apiUrl}</p>
           </div>
         </div>

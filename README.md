@@ -2,30 +2,67 @@
 
 # Production App Infrastructure
 
-Production-like DevOps Control Center for a small API and dashboard with Docker, observability, CI/CD, security scans, rollback, and Terraform validation.
+Production-style DevOps control center for a small API and dashboard with Docker, observability, CI/CD, security scans, rollback workflows, and Terraform validation.
 
-[![Live demo](https://img.shields.io/badge/live-GitHub%20Pages-2ea44f?style=for-the-badge&logo=githubpages&logoColor=white)](https://itkrivoshei.github.io/production-app-infrastructure/)
-[![CI](https://img.shields.io/github/actions/workflow/status/itkrivoshei/production-app-infrastructure/ci.yml?branch=main&style=for-the-badge&label=ci&logo=githubactions&logoColor=white)](https://github.com/itkrivoshei/production-app-infrastructure/actions/workflows/ci.yml)
-[![Docker Images](https://img.shields.io/github/actions/workflow/status/itkrivoshei/production-app-infrastructure/docker.yml?branch=main&style=for-the-badge&label=docker%20images&logo=docker&logoColor=white)](https://github.com/itkrivoshei/production-app-infrastructure/actions/workflows/docker.yml)
-[![Security](https://img.shields.io/github/actions/workflow/status/itkrivoshei/production-app-infrastructure/security.yml?branch=main&style=for-the-badge&label=security&logo=trivy&logoColor=white)](https://github.com/itkrivoshei/production-app-infrastructure/actions/workflows/security.yml)
-[![CodeQL](https://img.shields.io/github/actions/workflow/status/itkrivoshei/production-app-infrastructure/codeql.yml?branch=main&style=for-the-badge&label=codeql&logo=github&logoColor=white)](https://github.com/itkrivoshei/production-app-infrastructure/actions/workflows/codeql.yml)
-[![Pages](https://img.shields.io/github/actions/workflow/status/itkrivoshei/production-app-infrastructure/pages.yml?branch=main&style=for-the-badge&label=pages&logo=githubpages&logoColor=white)](https://github.com/itkrivoshei/production-app-infrastructure/actions/workflows/pages.yml)
-[![License](https://img.shields.io/github/license/itkrivoshei/production-app-infrastructure?style=for-the-badge)](LICENSE)
+[![Live demo](https://img.shields.io/badge/live-demo-2ea44f?style=for-the-badge&logo=githubpages&logoColor=white&labelColor=0f172a)](https://itkrivoshei.github.io/production-app-infrastructure/)
+[![CI](https://img.shields.io/github/actions/workflow/status/itkrivoshei/production-app-infrastructure/ci.yml?branch=main&style=for-the-badge&label=ci&logo=githubactions&logoColor=white&labelColor=0f172a)](https://github.com/itkrivoshei/production-app-infrastructure/actions/workflows/ci.yml)
+[![Docker Images](https://img.shields.io/github/actions/workflow/status/itkrivoshei/production-app-infrastructure/docker.yml?branch=main&style=for-the-badge&label=docker%20images&logo=docker&logoColor=white&labelColor=0f172a)](https://github.com/itkrivoshei/production-app-infrastructure/actions/workflows/docker.yml)
+[![Security](https://img.shields.io/github/actions/workflow/status/itkrivoshei/production-app-infrastructure/security.yml?branch=main&style=for-the-badge&label=security&logo=trivy&logoColor=white&labelColor=0f172a)](https://github.com/itkrivoshei/production-app-infrastructure/actions/workflows/security.yml)
+[![CodeQL](https://img.shields.io/github/actions/workflow/status/itkrivoshei/production-app-infrastructure/codeql.yml?branch=main&style=for-the-badge&label=codeql&logo=github&logoColor=white&labelColor=0f172a)](https://github.com/itkrivoshei/production-app-infrastructure/actions/workflows/codeql.yml)
+[![Pages](https://img.shields.io/github/actions/workflow/status/itkrivoshei/production-app-infrastructure/pages.yml?branch=main&style=for-the-badge&label=pages&logo=githubpages&logoColor=white&labelColor=0f172a)](https://github.com/itkrivoshei/production-app-infrastructure/actions/workflows/pages.yml)
+[![License](https://img.shields.io/github/license/itkrivoshei/production-app-infrastructure?style=for-the-badge&labelColor=0f172a)](LICENSE)
 
 </div>
 
-## What It Demonstrates
+## Overview
 
-- Fastify API with health, readiness, version, OpenAPI, metrics, demo load, and demo logs.
+This project demonstrates a production-oriented DevOps workflow around a containerized API, dashboard, observability stack, CI/CD automation, security checks, load testing, rollback workflows, and optional Terraform validation.
+
+Core capabilities:
+
+- Fastify API with health, readiness, OpenAPI, metrics, demo load, and structured logs.
 - React/Vite dashboard served through Nginx.
-- Docker Compose stack with API, web, Nginx, Prometheus, Grafana, Loki, Promtail, and k6.
-- Prometheus metrics and provisioned Grafana dashboards.
-- Structured API logs collected by Promtail and queried in Loki.
-- k6 smoke, load, and stress tests.
+- Docker Compose stack with Prometheus, Grafana, Loki, Promtail, and k6.
 - GitHub Actions for CI, GHCR image publishing, CodeQL, Trivy, Hadolint, and ShellCheck.
-- Rollback demo using local image tags and an isolated Compose project.
-- Optional AWS Terraform layer that validates locally without creating resources.
-- Project 2 readiness checks for Kubernetes handoff.
+- Local rollback workflow with version and health verification.
+- Optional Terraform AWS validation layer.
+- Kubernetes handoff readiness checks.
+
+## Architecture
+
+```mermaid
+flowchart LR
+  User[Browser] --> Nginx[Nginx]
+  Nginx --> Web[React/Vite Dashboard]
+  Nginx --> API[Fastify API]
+
+  API --> Metrics[Prometheus Metrics]
+  API --> Logs[Structured Logs]
+
+  Metrics --> Prometheus[Prometheus]
+  Logs --> Promtail[Promtail]
+  Promtail --> Loki[Loki]
+
+  Prometheus --> Grafana[Grafana]
+  Loki --> Grafana
+
+  K6["k6 Load Tests"] --> Nginx
+  Actions[GitHub Actions] --> CI[CI / Docker / Security / Pages]
+  CI --> GHCR[GHCR Images]
+```
+
+## Tech Stack
+
+| Area           | Tools                                               |
+| -------------- | --------------------------------------------------- |
+| API            | Fastify, TypeScript, OpenAPI, Prometheus metrics    |
+| Web            | React, Vite, TypeScript, Nginx                      |
+| Runtime        | Docker, Docker Compose, pnpm                        |
+| Observability  | Prometheus, Grafana, Loki, Promtail                 |
+| Load testing   | k6 smoke, load, and stress tests                    |
+| CI/CD          | GitHub Actions, GHCR image publishing, GitHub Pages |
+| Security       | CodeQL, Trivy, Hadolint, ShellCheck                 |
+| Infrastructure | Terraform AWS validation layer                      |
 
 ## Quick Start
 
@@ -38,17 +75,17 @@ docker compose up --build -d
 
 Open the local demo:
 
-| Service | URL |
-| --- | --- |
-| Dashboard | http://localhost:3000 |
-| API | http://localhost:8080 |
-| API health | http://localhost:8080/health |
-| API docs | http://localhost:8080/docs |
-| API metrics | http://localhost:8080/metrics |
-| Prometheus | http://localhost:9090 |
-| Grafana | http://localhost:3001 |
-| Loki | http://localhost:3100 |
-| Promtail | http://localhost:9080 |
+| Service     | URL                                                            |
+| ----------- | -------------------------------------------------------------- |
+| Dashboard   | [http://localhost:3000](http://localhost:3000)                 |
+| API         | [http://localhost:8080](http://localhost:8080)                 |
+| API health  | [http://localhost:8080/health](http://localhost:8080/health)   |
+| API docs    | [http://localhost:8080/docs](http://localhost:8080/docs)       |
+| API metrics | [http://localhost:8080/metrics](http://localhost:8080/metrics) |
+| Prometheus  | [http://localhost:9090](http://localhost:9090)                 |
+| Grafana     | [http://localhost:3001](http://localhost:3001)                 |
+| Loki        | [http://localhost:3100](http://localhost:3100)                 |
+| Promtail    | [http://localhost:9080](http://localhost:9080)                 |
 
 Stop the stack:
 
@@ -58,13 +95,13 @@ docker compose down
 
 ## Demo
 
-### Quick Online Preview
+### Online Preview
 
 The online demo shows the DevOps Control Center interface with mock data:
 
-https://itkrivoshei.github.io/production-app-infrastructure/
+[Open the live demo](https://itkrivoshei.github.io/production-app-infrastructure/)
 
-This online demo is a static UI preview. The full observability stack runs locally with Docker Compose.
+The online demo is a static UI preview. The full observability stack runs locally with Docker Compose.
 
 ### Full Local Demo
 
@@ -76,16 +113,20 @@ docker compose up --build
 
 Services:
 
-| Service | URL |
-| --- | --- |
-| Dashboard | http://localhost:3000 |
-| API | http://localhost:8080 |
-| API Docs | http://localhost:8080/docs |
-| Prometheus | http://localhost:9090 |
-| Grafana | http://localhost:3001 |
-| Loki | http://localhost:3100 |
+| Service    | URL                                                      |
+| ---------- | -------------------------------------------------------- |
+| Dashboard  | [http://localhost:3000](http://localhost:3000)           |
+| API        | [http://localhost:8080](http://localhost:8080)           |
+| API docs   | [http://localhost:8080/docs](http://localhost:8080/docs) |
+| Prometheus | [http://localhost:9090](http://localhost:9090)           |
+| Grafana    | [http://localhost:3001](http://localhost:3001)           |
+| Loki       | [http://localhost:3100](http://localhost:3100)           |
 
-The dashboard port can still be overridden, for example `NGINX_PORT=8088 docker compose up --build`.
+The dashboard port can still be overridden:
+
+```bash
+NGINX_PORT=8088 docker compose up --build
+```
 
 Demo scenarios:
 
@@ -98,7 +139,9 @@ curl -i -X POST http://localhost:8080/load/errors
 ./scripts/rollback-demo.sh --clean
 ```
 
-The dashboard can also generate CPU load, controlled errors, and logs from the UI. See [Demo guide](docs/demo.md) for the step-by-step walkthrough.
+The dashboard can also generate CPU load, controlled errors, and logs from the UI.
+
+See the [Demo guide](docs/demo.md) for the step-by-step walkthrough.
 
 ## Local Quality Gate
 
@@ -107,7 +150,7 @@ pnpm run ci
 docker compose config
 docker compose up --build -d
 ./scripts/healthcheck.sh
-./scripts/project2-readiness.sh
+./scripts/kubernetes-readiness.sh
 pnpm k6:docker:smoke
 pnpm k6:docker:load
 ./scripts/rollback-demo.sh v1.0.0
@@ -124,24 +167,24 @@ terraform validate
 cd ../../..
 ```
 
-## Common Commands
+## Commands
 
-```bash
-pnpm dev:local
-pnpm docker:dev
-pnpm docker:down
-pnpm demo:up
-pnpm demo:down
-pnpm demo:health
-pnpm demo:load
-pnpm demo:rollback
-pnpm health
-pnpm logs
-pnpm k6:docker:smoke
-pnpm k6:docker:load
-pnpm tf:aws:fmt
-pnpm tf:aws:validate
-```
+| Command                | Purpose                                   |
+| ---------------------- | ----------------------------------------- |
+| `pnpm dev:local`       | Start the local development workflow      |
+| `pnpm docker:dev`      | Start the Docker development stack        |
+| `pnpm docker:down`     | Stop the Docker stack                     |
+| `pnpm demo:up`         | Start the demo environment                |
+| `pnpm demo:down`       | Stop the demo environment                 |
+| `pnpm demo:health`     | Run demo health checks                    |
+| `pnpm demo:load`       | Generate demo load                        |
+| `pnpm demo:rollback`   | Run the rollback demo                     |
+| `pnpm health`          | Run health checks                         |
+| `pnpm logs`            | Show service logs                         |
+| `pnpm k6:docker:smoke` | Run k6 smoke tests in Docker              |
+| `pnpm k6:docker:load`  | Run k6 load tests in Docker               |
+| `pnpm tf:aws:fmt`      | Check Terraform formatting                |
+| `pnpm tf:aws:validate` | Validate the optional AWS Terraform layer |
 
 Direct API checks:
 
@@ -166,29 +209,35 @@ curl -fsS -X POST http://localhost:8080/logs/generate \
 
 ## Documentation
 
-- [Architecture](docs/architecture.md)
-- [Demo guide](docs/demo.md)
-- [Local development](docs/local-development.md)
-- [Monitoring](docs/monitoring.md)
-- [Logging](docs/logging.md)
-- [Load testing](docs/load-testing.md)
-- [CI/CD](docs/ci-cd.md)
-- [Security](docs/security.md)
-- [Rollback](docs/rollback.md)
-- [Terraform AWS](docs/terraform-aws.md)
-- [Project 2 readiness](docs/project-2-readiness.md)
-- [Troubleshooting](docs/troubleshooting.md)
+| Topic                | Link                                                       |
+| -------------------- | ---------------------------------------------------------- |
+| Architecture         | [docs/architecture.md](docs/architecture.md)               |
+| Demo guide           | [docs/demo.md](docs/demo.md)                               |
+| Local development    | [docs/local-development.md](docs/local-development.md)     |
+| Monitoring           | [docs/monitoring.md](docs/monitoring.md)                   |
+| Logging              | [docs/logging.md](docs/logging.md)                         |
+| Load testing         | [docs/load-testing.md](docs/load-testing.md)               |
+| CI/CD                | [docs/ci-cd.md](docs/ci-cd.md)                             |
+| Security             | [docs/security.md](docs/security.md)                       |
+| Rollback             | [docs/rollback.md](docs/rollback.md)                       |
+| Terraform AWS        | [docs/terraform-aws.md](docs/terraform-aws.md)             |
+| Kubernetes readiness | [docs/kubernetes-readiness.md](docs/kubernetes-readiness.md) |
+| Troubleshooting      | [docs/troubleshooting.md](docs/troubleshooting.md)         |
 
-## Project 2 Handoff
+## Kubernetes Handoff
 
 Run this before starting Kubernetes work:
 
 ```bash
-./scripts/project2-readiness.sh
+./scripts/kubernetes-readiness.sh
 ```
 
 For strict GHCR validation after the main-branch Docker workflow publishes images:
 
 ```bash
-CHECK_GHCR=true ./scripts/project2-readiness.sh
+CHECK_GHCR=true ./scripts/kubernetes-readiness.sh
 ```
+
+## License
+
+[MIT](LICENSE)

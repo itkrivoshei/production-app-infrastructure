@@ -1,31 +1,31 @@
-import { Type } from '@sinclair/typebox';
-import type { FastifyInstance } from 'fastify';
+import { Type } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 
 export async function readyRoutes(app: FastifyInstance): Promise<void> {
   app.get(
-    '/ready',
+    "/ready",
     {
       schema: {
-        tags: ['system'],
+        tags: ["system"],
         response: {
           200: Type.Object({
             status: Type.String(),
             checks: Type.Object({
-              api: Type.String()
+              api: Type.String(),
             }),
-            timestamp: Type.String()
-          })
-        }
-      }
+            timestamp: Type.String(),
+          }),
+        },
+      },
     },
     async () => {
       return {
-        status: 'ready',
+        status: "ready",
         checks: {
-          api: 'ok'
+          api: "ok",
         },
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
-    }
+    },
   );
 }

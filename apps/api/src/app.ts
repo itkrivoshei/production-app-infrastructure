@@ -1,34 +1,34 @@
-import cors from '@fastify/cors';
-import Fastify from 'fastify';
-import { config } from './config.js';
-import { registerMetrics } from './plugins/metrics.js';
-import { registerSwagger } from './plugins/swagger.js';
-import { healthRoutes } from './routes/health.js';
-import { loadRoutes } from './routes/load.js';
-import { logsRoutes } from './routes/logs.js';
-import { metricsRoutes } from './routes/metrics.js';
-import { readyRoutes } from './routes/ready.js';
-import { statusRoutes } from './routes/status.js';
-import { versionRoutes } from './routes/version.js';
+import cors from "@fastify/cors";
+import Fastify from "fastify";
+import { config } from "./config.js";
+import { registerMetrics } from "./plugins/metrics.js";
+import { registerSwagger } from "./plugins/swagger.js";
+import { healthRoutes } from "./routes/health.js";
+import { loadRoutes } from "./routes/load.js";
+import { logsRoutes } from "./routes/logs.js";
+import { metricsRoutes } from "./routes/metrics.js";
+import { readyRoutes } from "./routes/ready.js";
+import { statusRoutes } from "./routes/status.js";
+import { versionRoutes } from "./routes/version.js";
 
 export async function buildApp() {
   const logger =
-    config.logFormat === 'pretty'
+    config.logFormat === "pretty"
       ? {
           level: config.logLevel,
           base: {
             service: config.appName,
             environment: config.appEnv,
             version: config.appVersion,
-            commit: config.commitSha
+            commit: config.commitSha,
           },
           transport: {
-            target: 'pino-pretty',
+            target: "pino-pretty",
             options: {
-              translateTime: 'HH:MM:ss Z',
-              ignore: 'pid,hostname'
-            }
-          }
+              translateTime: "HH:MM:ss Z",
+              ignore: "pid,hostname",
+            },
+          },
         }
       : {
           level: config.logLevel,
@@ -36,16 +36,16 @@ export async function buildApp() {
             service: config.appName,
             environment: config.appEnv,
             version: config.appVersion,
-            commit: config.commitSha
-          }
+            commit: config.commitSha,
+          },
         };
 
   const app = Fastify({
-    logger
+    logger,
   });
 
   await app.register(cors, {
-    origin: true
+    origin: true,
   });
 
   registerMetrics(app, config);

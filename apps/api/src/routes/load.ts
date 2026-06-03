@@ -1,9 +1,9 @@
-import { Type, type Static } from '@sinclair/typebox';
-import type { FastifyInstance } from 'fastify';
-import type { AppConfig } from '../config.js';
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
+import type { AppConfig } from "../config.js";
 
 const CpuLoadBodySchema = Type.Object({
-  durationMs: Type.Optional(Type.Number({ minimum: 100, maximum: 5000 }))
+  durationMs: Type.Optional(Type.Number({ minimum: 100, maximum: 5000 })),
 });
 
 type CpuLoadBody = Static<typeof CpuLoadBodySchema>;
@@ -20,12 +20,15 @@ function createCpuLoad(durationMs: number): number {
   return operations;
 }
 
-export async function loadRoutes(app: FastifyInstance, config: AppConfig): Promise<void> {
+export async function loadRoutes(
+  app: FastifyInstance,
+  config: AppConfig,
+): Promise<void> {
   app.post<{ Body: CpuLoadBody }>(
-    '/load/cpu',
+    "/load/cpu",
     {
       schema: {
-        tags: ['demo'],
+        tags: ["demo"],
         body: CpuLoadBodySchema,
         response: {
           200: Type.Object({
@@ -33,77 +36,77 @@ export async function loadRoutes(app: FastifyInstance, config: AppConfig): Promi
             type: Type.String(),
             durationMs: Type.Number(),
             operations: Type.Number(),
-            timestamp: Type.String()
+            timestamp: Type.String(),
           }),
           403: Type.Object({
             status: Type.String(),
-            message: Type.String()
-          })
-        }
-      }
+            message: Type.String(),
+          }),
+        },
+      },
     },
     async (request, reply) => {
       if (!config.enableDemoLoad) {
         return reply.code(403).send({
-          status: 'disabled',
-          message: 'Demo load generation is disabled'
+          status: "disabled",
+          message: "Demo load generation is disabled",
         });
       }
 
       const durationMs = request.body.durationMs ?? 1000;
       const operations = createCpuLoad(durationMs);
 
-      app.metrics.appLoadEventsTotal.inc({ type: 'cpu' });
-      app.log.info({ durationMs, operations }, 'Generated demo CPU load');
+      app.metrics.appLoadEventsTotal.inc({ type: "cpu" });
+      app.log.info({ durationMs, operations }, "Generated demo CPU load");
 
       return {
-        status: 'ok',
-        type: 'cpu',
+        status: "ok",
+        type: "cpu",
         durationMs,
         operations,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
-    }
+    },
   );
 
   app.post(
-    '/load/errors',
+    "/load/errors",
     {
       schema: {
-        tags: ['demo'],
+        tags: ["demo"],
         response: {
           500: Type.Object({
             status: Type.String(),
             message: Type.String(),
-            timestamp: Type.String()
+            timestamp: Type.String(),
           }),
           403: Type.Object({
             status: Type.String(),
-            message: Type.String()
-          })
-        }
-      }
+            message: Type.String(),
+          }),
+        },
+      },
     },
     async (_request, reply) => {
       if (!config.enableDemoErrors) {
         return reply.code(403).send({
-          status: 'disabled',
-          message: 'Demo error generation is disabled'
+          status: "disabled",
+          message: "Demo error generation is disabled",
         });
       }
 
       app.metrics.appErrorsTotal.inc({
-        route: '/load/errors',
-        type: 'demo'
+        route: "/load/errors",
+        type: "demo",
       });
 
-      app.log.error({ route: '/load/errors' }, 'Generated demo error');
+      app.log.error({ route: "/load/errors" }, "Generated demo error");
 
       return reply.code(500).send({
-        status: 'error',
-        message: 'Demo error generated intentionally',
-        timestamp: new Date().toISOString()
+        status: "error",
+        message: "Demo error generated intentionally",
+        timestamp: new Date().toISOString(),
       });
-    }
+    },
   );
 }

@@ -1,6 +1,6 @@
-import type { AppMetrics } from '../plugins/metrics.js';
+import type { AppMetrics } from "../plugins/metrics.js";
 
-declare module 'fastify' {
+declare module "fastify" {
   interface FastifyInstance {
     metrics: AppMetrics;
   }

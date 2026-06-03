@@ -1,4 +1,4 @@
-import type { ApiClient } from './api';
+import type { ApiClient } from "./api";
 
 const startedAt = Date.now() - 12 * 60 * 1000 - 40 * 1000;
 
@@ -8,16 +8,16 @@ const mockState = {
   cpuLoadEvents: 4,
   logs: [
     {
-      level: 'info',
-      message: 'Static preview loaded with mock observability data',
-      timestamp: new Date(Date.now() - 30_000).toISOString()
+      level: "info",
+      message: "Static preview loaded with mock observability data",
+      timestamp: new Date(Date.now() - 30_000).toISOString(),
     },
     {
-      level: 'warn',
-      message: 'Synthetic latency spike detected during demo load',
-      timestamp: new Date(Date.now() - 90_000).toISOString()
-    }
-  ]
+      level: "warn",
+      message: "Synthetic latency spike detected during demo load",
+      timestamp: new Date(Date.now() - 90_000).toISOString(),
+    },
+  ],
 };
 
 function timestamp() {
@@ -44,82 +44,86 @@ function createMetricsText() {
   const metricsRequests = Math.floor(successfulRequests * 0.2);
   const loadRequests = Math.floor(successfulRequests * 0.16);
   const statusRequests = Math.max(
-    successfulRequests - healthRequests - readyRequests - metricsRequests - loadRequests,
-    0
+    successfulRequests -
+      healthRequests -
+      readyRequests -
+      metricsRequests -
+      loadRequests,
+    0,
   );
 
   return [
-    '# HELP http_requests_total Total number of HTTP requests',
-    '# TYPE http_requests_total counter',
+    "# HELP http_requests_total Total number of HTTP requests",
+    "# TYPE http_requests_total counter",
     `http_requests_total{method="GET",route="/health",status_code="200"} ${healthRequests}`,
     `http_requests_total{method="GET",route="/ready",status_code="200"} ${readyRequests}`,
     `http_requests_total{method="GET",route="/metrics",status_code="200"} ${metricsRequests}`,
     `http_requests_total{method="GET",route="/status",status_code="200"} ${statusRequests}`,
     `http_requests_total{method="POST",route="/load/cpu",status_code="200"} ${loadRequests}`,
     `http_requests_total{method="POST",route="/load/errors",status_code="500"} ${errors}`,
-    '# HELP app_errors_total Total number of demo application errors',
-    '# TYPE app_errors_total counter',
+    "# HELP app_errors_total Total number of demo application errors",
+    "# TYPE app_errors_total counter",
     `app_errors_total{route="/load/errors",type="demo"} ${errors}`,
-    '# HELP app_load_events_total Total number of generated demo load events',
-    '# TYPE app_load_events_total counter',
+    "# HELP app_load_events_total Total number of generated demo load events",
+    "# TYPE app_load_events_total counter",
     `app_load_events_total{type="cpu"} ${mockState.cpuLoadEvents}`,
-    '# HELP app_info Application metadata',
-    '# TYPE app_info gauge',
+    "# HELP app_info Application metadata",
+    "# TYPE app_info gauge",
     'app_info{service="devops-control-center-api",version="1.0.0",commit="abc1234",environment="local"} 1',
-    '# HELP node_process_uptime_seconds Mock Node.js process uptime',
-    '# TYPE node_process_uptime_seconds gauge',
-    `node_process_uptime_seconds ${uptimeSeconds()}`
-  ].join('\n');
+    "# HELP node_process_uptime_seconds Mock Node.js process uptime",
+    "# TYPE node_process_uptime_seconds gauge",
+    `node_process_uptime_seconds ${uptimeSeconds()}`,
+  ].join("\n");
 }
 
 export const mockApi = {
   health: async () => {
     recordRequest();
     return {
-      status: 'ok',
+      status: "ok",
       uptime: uptimeSeconds(),
-      timestamp: timestamp()
+      timestamp: timestamp(),
     };
   },
   ready: async () => {
     recordRequest();
     return {
-      status: 'ready',
+      status: "ready",
       checks: {
-        api: 'ok'
+        api: "ok",
       },
-      timestamp: timestamp()
+      timestamp: timestamp(),
     };
   },
   version: async () => {
     recordRequest();
     return {
-      service: 'devops-control-center-api',
-      version: '1.0.0',
-      commit: 'abc1234',
-      environment: 'local'
+      service: "devops-control-center-api",
+      version: "1.0.0",
+      commit: "abc1234",
+      environment: "local",
     };
   },
   status: async () => {
     recordRequest();
     return {
-      service: 'devops-control-center-api',
-      version: '1.0.0',
-      commit: 'abc1234',
-      environment: 'local',
-      status: 'ok',
+      service: "devops-control-center-api",
+      version: "1.0.0",
+      commit: "abc1234",
+      environment: "local",
+      status: "ok",
       uptime: uptimeSeconds(),
       timestamp: timestamp(),
       serviceStatus: [
-        { name: 'api', status: 'healthy' },
-        { name: 'prometheus', status: 'up' },
-        { name: 'grafana', status: 'ready' },
-        { name: 'loki', status: 'ready' }
+        { name: "api", status: "healthy" },
+        { name: "prometheus", status: "up" },
+        { name: "grafana", status: "ready" },
+        { name: "loki", status: "ready" },
       ],
       deploymentHistory: [
-        { version: '1.0.0', status: 'current', environment: 'local' },
-        { version: '0.9.0', status: 'rollback-target', environment: 'local' }
-      ]
+        { version: "1.0.0", status: "current", environment: "local" },
+        { version: "0.9.0", status: "rollback-target", environment: "local" },
+      ],
     };
   },
   metricsText: async () => {
@@ -131,11 +135,11 @@ export const mockApi = {
     mockState.cpuLoadEvents += 1;
 
     return {
-      status: 'ok',
-      type: 'cpu',
+      status: "ok",
+      type: "cpu",
       durationMs,
       operations: Math.round(durationMs * 950 + Math.random() * 25_000),
-      timestamp: timestamp()
+      timestamp: timestamp(),
     };
   },
   generateErrors: async () => {
@@ -144,24 +148,24 @@ export const mockApi = {
     return {
       statusCode: 500,
       body: {
-        status: 'error',
-        message: 'Demo error generated intentionally',
-        timestamp: timestamp()
-      }
+        status: "error",
+        message: "Demo error generated intentionally",
+        timestamp: timestamp(),
+      },
     };
   },
-  generateLog: async (level: 'info' | 'warn' | 'error', message: string) => {
+  generateLog: async (level: "info" | "warn" | "error", message: string) => {
     recordRequest();
 
     const entry = {
-      status: 'ok',
+      status: "ok",
       level,
       message,
-      timestamp: timestamp()
+      timestamp: timestamp(),
     };
 
     mockState.logs = [entry, ...mockState.logs].slice(0, 20);
 
     return entry;
-  }
+  },
 } satisfies ApiClient;

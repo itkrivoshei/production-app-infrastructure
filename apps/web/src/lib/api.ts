@@ -5,18 +5,18 @@ import type {
   HealthResponse,
   ReadyResponse,
   StatusResponse,
-  VersionResponse
-} from '@/types/api';
-import { config } from './config';
-import { mockApi } from './mockApi';
+  VersionResponse,
+} from "@/types/api";
+import { config } from "./config";
+import { mockApi } from "./mockApi";
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${config.apiUrl}${path}`, {
     headers: {
-      'Content-Type': 'application/json',
-      ...options?.headers
+      "Content-Type": "application/json",
+      ...options?.headers,
     },
-    ...options
+    ...options,
   });
 
   if (!response.ok) {
@@ -28,10 +28,10 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 }
 
 const liveApi = {
-  health: () => request<HealthResponse>('/health'),
-  ready: () => request<ReadyResponse>('/ready'),
-  version: () => request<VersionResponse>('/version'),
-  status: () => request<StatusResponse>('/status'),
+  health: () => request<HealthResponse>("/health"),
+  ready: () => request<ReadyResponse>("/ready"),
+  version: () => request<VersionResponse>("/version"),
+  status: () => request<StatusResponse>("/status"),
   metricsText: async () => {
     const response = await fetch(`${config.apiUrl}/metrics`);
 
@@ -42,27 +42,27 @@ const liveApi = {
     return response.text();
   },
   generateCpuLoad: (durationMs = 1000) =>
-    request<CpuLoadResponse>('/load/cpu', {
-      method: 'POST',
-      body: JSON.stringify({ durationMs })
+    request<CpuLoadResponse>("/load/cpu", {
+      method: "POST",
+      body: JSON.stringify({ durationMs }),
     }),
   generateErrors: async () => {
     const response = await fetch(`${config.apiUrl}/load/errors`, {
-      method: 'POST'
+      method: "POST",
     });
 
     const body = (await response.json()) as ApiErrorResponse;
 
     return {
       statusCode: response.status,
-      body
+      body,
     };
   },
-  generateLog: (level: 'info' | 'warn' | 'error', message: string) =>
-    request<GeneratedLogResponse>('/logs/generate', {
-      method: 'POST',
-      body: JSON.stringify({ level, message })
-    })
+  generateLog: (level: "info" | "warn" | "error", message: string) =>
+    request<GeneratedLogResponse>("/logs/generate", {
+      method: "POST",
+      body: JSON.stringify({ level, message }),
+    }),
 };
 
 export type ApiClient = typeof liveApi;

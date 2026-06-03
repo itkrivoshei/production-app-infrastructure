@@ -1,7 +1,7 @@
-import { Activity } from 'lucide-react';
-import type { ReactNode } from 'react';
-import { config } from '@/lib/config';
-import { Sidebar } from './Sidebar';
+import { Activity } from "lucide-react";
+import type { ReactNode } from "react";
+import { config } from "@/lib/config";
+import { Sidebar } from "./Sidebar";
 
 type AppLayoutProps = {
   children: ReactNode;
@@ -15,8 +15,8 @@ export function AppLayout({ children }: AppLayoutProps) {
         <main className="min-w-0 flex-1">
           {config.isStaticDemo ? (
             <div className="border-b border-cyan-200 bg-cyan-50 px-4 py-3 text-sm font-medium text-cyan-950 sm:px-6 lg:px-8">
-              This online demo is a static UI preview. The full observability stack runs locally
-              with Docker Compose.
+              This online demo is a static UI preview. The full observability
+              stack runs locally with Docker Compose.
             </div>
           ) : null}
           <header className="flex h-16 items-center gap-3 border-b border-slate-200 bg-white px-4 lg:hidden">
@@ -24,8 +24,12 @@ export function AppLayout({ children }: AppLayoutProps) {
               <Activity className="size-5" aria-hidden="true" />
             </span>
             <div>
-              <div className="text-sm font-semibold leading-tight">DevOps Control Center</div>
-              <div className="text-xs text-slate-500">Production infrastructure</div>
+              <div className="text-sm font-semibold leading-tight">
+                DevOps Control Center
+              </div>
+              <div className="text-xs text-slate-500">
+                Production infrastructure
+              </div>
             </div>
           </header>
           <div className="mx-auto w-full max-w-7xl px-4 py-5 sm:px-6 lg:px-8 lg:py-8">

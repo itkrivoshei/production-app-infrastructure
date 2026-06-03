@@ -23,41 +23,43 @@ function parseSample(line: string) {
   }
 
   return {
-    name: nameAndLabels.split('{')[0],
-    value: parsedValue
+    name: nameAndLabels.split("{")[0],
+    value: parsedValue,
   };
 }
 
 export function sumMetric(metricsText: string | undefined, metricName: string) {
-  return (metricsText ?? '')
-    .split('\n')
-    .filter((line) => line && !line.startsWith('#'))
+  return (metricsText ?? "")
+    .split("\n")
+    .filter((line) => line && !line.startsWith("#"))
     .reduce((total, line) => {
       const sample = parseSample(line);
       return sample?.name === metricName ? total + sample.value : total;
     }, 0);
 }
 
-export function summarizeMetrics(metricsText: string | undefined): MetricsSummary {
-  const requests = sumMetric(metricsText, 'http_requests_total');
-  const errors = sumMetric(metricsText, 'app_errors_total');
+export function summarizeMetrics(
+  metricsText: string | undefined,
+): MetricsSummary {
+  const requests = sumMetric(metricsText, "http_requests_total");
+  const errors = sumMetric(metricsText, "app_errors_total");
 
   return {
     requests,
     errors,
-    errorRate: requests > 0 ? (errors / requests) * 100 : 0
+    errorRate: requests > 0 ? (errors / requests) * 100 : 0,
   };
 }
 
-export function parseMetricFamilies(metricsText = ''): MetricFamilyCount[] {
+export function parseMetricFamilies(metricsText = ""): MetricFamilyCount[] {
   const counts = new Map<string, number>();
 
   metricsText
-    .split('\n')
-    .filter((line) => line && !line.startsWith('#'))
+    .split("\n")
+    .filter((line) => line && !line.startsWith("#"))
     .forEach((line) => {
       const sample = parseSample(line);
-      const family = sample?.name ?? 'unknown';
+      const family = sample?.name ?? "unknown";
       counts.set(family, (counts.get(family) ?? 0) + 1);
     });
 

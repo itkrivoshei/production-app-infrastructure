@@ -74,7 +74,7 @@ check_loki_ingestion() {
   local query
   local response
 
-  message="project2 readiness $(date +%s)"
+  message="Kubernetes handoff readiness $(date +%s)"
 
   info "Generating API log for Loki readiness"
   curl -fsS --max-time 8 \
@@ -179,7 +179,7 @@ main() {
   require_command curl
   require_command rg
 
-  info "Running Project 2 readiness checks..."
+  info "Running Kubernetes readiness checks..."
 
   check_file docker-compose.yml
   check_file apps/api/Dockerfile
@@ -222,7 +222,7 @@ main() {
   check_ghcr_image "$owner" devops-control-center-web
   check_terraform_if_ready
 
-  success "Project 2 readiness checks passed."
+  success "Kubernetes readiness checks passed."
 }
 
 main "$@"
