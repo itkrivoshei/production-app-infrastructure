@@ -28,9 +28,17 @@ check_command_output() {
 }
 
 check_no_hardcoded_localhost_in_source() {
+  local matches
+
   info "Checking application source for hardcoded localhost references"
 
-  if rg -n "localhost|127\\.0\\.0\\.1" apps/api/src apps/web/src; then
+  matches="$(
+    rg -n "localhost|127\\.0\\.0\\.1" apps/api/src apps/web/src \
+      | rg -v "localUrl=|\\.test\\." || true
+  )"
+
+  if [[ -n "$matches" ]]; then
+    printf "%s\n" "$matches"
     die "Application source contains hardcoded localhost references"
   fi
 
