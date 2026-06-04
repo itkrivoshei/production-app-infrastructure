@@ -9,25 +9,25 @@ type AppLayoutProps = {
 
 export function AppLayout({ children }: AppLayoutProps) {
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-950">
+    <div className="min-h-screen bg-slate-950 text-slate-100">
       <div className="flex min-h-screen">
         <Sidebar />
         <main className="min-w-0 flex-1">
           {config.isStaticDemo ? (
-            <div className="border-b border-cyan-200 bg-cyan-50 px-4 py-3 text-sm font-medium text-cyan-950 sm:px-6 lg:px-8">
+            <div className="border-b border-cyan-400/30 bg-cyan-400/10 px-4 py-3 text-sm font-medium text-cyan-100 sm:px-6 lg:px-8">
               This online demo is a static UI preview. The full observability
               stack runs locally with Docker Compose.
             </div>
           ) : null}
-          <header className="flex h-16 items-center gap-3 border-b border-slate-200 bg-white px-4 lg:hidden">
-            <span className="flex size-9 items-center justify-center rounded-md bg-slate-950 text-cyan-300">
+          <header className="flex h-16 items-center gap-3 border-b border-slate-800 bg-slate-950 px-4 lg:hidden">
+            <span className="flex size-9 items-center justify-center rounded-md bg-cyan-400 text-slate-950">
               <Activity className="size-5" aria-hidden="true" />
             </span>
             <div>
-              <div className="text-sm font-semibold leading-tight">
+              <div className="text-sm font-semibold leading-tight text-slate-50">
                 DevOps Control Center
               </div>
-              <div className="text-xs text-slate-500">
+              <div className="text-xs text-slate-400">
                 Production infrastructure
               </div>
             </div>

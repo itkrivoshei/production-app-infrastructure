@@ -6,6 +6,7 @@ export const config = {
   apiUrl: import.meta.env.VITE_API_URL ?? "/api",
   grafanaUrl: import.meta.env.VITE_GRAFANA_URL ?? "/grafana",
   prometheusUrl: import.meta.env.VITE_PROMETHEUS_URL ?? "/prometheus",
+  lokiUrl: import.meta.env.VITE_LOKI_URL ?? "/loki",
   apiDocsUrl: import.meta.env.VITE_API_DOCS_URL ?? "/api/docs",
   demoMode,
   isStaticDemo: demoMode === "static",

@@ -12,7 +12,7 @@ import {
 import { BarChart3, Gauge } from "lucide-react";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { SectionHeader } from "@/components/dashboard/SectionHeader";
-import { Button } from "@/components/ui/button";
+import { ServiceAccessButton } from "@/components/dashboard/ServiceAccessButton";
 import { api } from "@/lib/api";
 import { config } from "@/lib/config";
 import { parseMetricFamilies } from "@/lib/metrics";
@@ -40,22 +40,24 @@ export function Metrics() {
         description="Prometheus-format backend metrics."
         action={
           <>
-            <Button asChild variant="outline">
-              <a
-                href={`${config.apiUrl}/metrics`}
-                target="_blank"
-                rel="noreferrer"
-              >
-                <BarChart3 className="size-4" aria-hidden="true" />
-                <span>/metrics</span>
-              </a>
-            </Button>
-            <Button asChild variant="outline">
-              <a href={config.prometheusUrl} target="_blank" rel="noreferrer">
-                <Gauge className="size-4" aria-hidden="true" />
-                <span>Prometheus</span>
-              </a>
-            </Button>
+            <ServiceAccessButton
+              label="/metrics"
+              serviceName="API metrics endpoint"
+              description="The Prometheus-format metrics endpoint is served by the local API."
+              url={`${config.apiUrl}/metrics`}
+              localUrl="http://localhost:8080/metrics"
+              icon={BarChart3}
+              docsPath="docs/monitoring.md"
+            />
+            <ServiceAccessButton
+              label="Prometheus"
+              serviceName="Prometheus"
+              description="Metrics target and Prometheus query UI for the local stack."
+              url={config.prometheusUrl}
+              localUrl="http://localhost:9090"
+              icon={Gauge}
+              docsPath="docs/monitoring.md"
+            />
           </>
         }
       />
@@ -73,8 +75,8 @@ export function Metrics() {
         <pre className="max-h-[520px] overflow-auto rounded-lg border border-slate-800 bg-slate-950 p-4 text-xs leading-5 text-slate-100">
           {metrics.data ?? "Loading metrics..."}
         </pre>
-        <div className="rounded-lg border border-slate-200 bg-white p-4">
-          <h2 className="text-sm font-semibold text-slate-950">
+        <div className="rounded-lg border border-slate-800 bg-slate-900 p-4">
+          <h2 className="text-sm font-semibold text-slate-50">
             Metric family density
           </h2>
           <div className="mt-4 h-72">
@@ -84,15 +86,33 @@ export function Metrics() {
                 layout="vertical"
                 margin={{ left: 8, right: 8 }}
               >
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                <XAxis type="number" allowDecimals={false} />
+                <CartesianGrid
+                  stroke="#334155"
+                  strokeDasharray="3 3"
+                  horizontal={false}
+                />
+                <XAxis
+                  type="number"
+                  allowDecimals={false}
+                  tick={{ fill: "#94a3b8", fontSize: 11 }}
+                  axisLine={{ stroke: "#334155" }}
+                  tickLine={{ stroke: "#334155" }}
+                />
                 <YAxis
                   dataKey="name"
                   type="category"
                   width={150}
-                  tick={{ fontSize: 11 }}
+                  tick={{ fill: "#94a3b8", fontSize: 11 }}
+                  axisLine={{ stroke: "#334155" }}
+                  tickLine={{ stroke: "#334155" }}
                 />
-                <Tooltip />
+                <Tooltip
+                  contentStyle={{
+                    background: "#020617",
+                    border: "1px solid #334155",
+                    color: "#e2e8f0",
+                  }}
+                />
                 <Bar dataKey="count" fill="#0891b2" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>

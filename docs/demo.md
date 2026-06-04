@@ -15,6 +15,14 @@ https://itkrivoshei.github.io/production-app-infrastructure/
 
 The online preview is frontend-only and uses mock data. Backend health checks, metrics, logs, load testing, and rollback workflows run in the full local demo.
 
+Static preview actions are intentionally interactive:
+
+- `Run Health Check` refreshes mock health, readiness, version, uptime, and metrics.
+- `Generate CPU Load` simulates load and increases request/load-related metrics.
+- `Generate Errors` creates controlled demo errors and updates the error count/rate.
+- `Generate Logs` adds mock log entries to the Activity Console.
+- Local-only services show a guidance panel with the local URL, start command, and relevant docs instead of navigating to broken static URLs.
+
 ## Full Local Demo
 
 Start the real stack:
@@ -76,6 +84,7 @@ pnpm k6:docker:load
 Show:
 
 - Request counters increase on the dashboard.
+- The Activity Console records the generated load with a timestamp.
 - Response timing changes in Grafana.
 - API logs appear through the Loki datasource in Grafana Explore.
 - k6 output shows request rate and latency data.
@@ -94,6 +103,7 @@ Show:
 
 - API returns a controlled `500` response.
 - Error count and error rate increase on the dashboard.
+- The Activity Console labels the event as a controlled demo error, not an application crash.
 - Grafana error panels change.
 - Loki contains the generated error log.
 
@@ -152,6 +162,8 @@ Recommended files:
 | Proof                             | File                             |
 | --------------------------------- | -------------------------------- |
 | Dashboard overview                | `docs/screenshots/dashboard.png` |
+| Dashboard action feedback         | `docs/screenshots/activity-console.png` |
+| Static local-service guidance     | `docs/screenshots/static-guidance.png` |
 | Grafana dashboard                 | `docs/screenshots/grafana.png`   |
 | Loki logs through Grafana Explore | `docs/screenshots/loki-logs.png` |
 | k6 load evidence                  | `docs/screenshots/k6-load.png`   |

@@ -2,7 +2,7 @@
 
 This folder stores visual proof for the local demo and project documentation.
 
-Screenshots should show the full DevOps workflow: dashboard status, observability, logs, load testing, and rollback behavior.
+Screenshots should show the full DevOps workflow: dashboard status, action feedback, static guidance, observability, logs, load testing, and rollback behavior.
 
 ## Before Capturing
 
@@ -32,6 +32,9 @@ curl -fsS -X POST http://localhost:8080/logs/generate \
 | File            | Capture                                                                                                                            |
 | --------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
 | `dashboard.png` | Dashboard at `http://localhost:3000` showing healthy API, ready status, version, commit, uptime, requests, errors, and error rate. |
+| `activity-console.png` | Dashboard after running load/error/log actions, showing timestamped Activity Console entries. |
+| `static-guidance.png` | GitHub Pages static preview with a local-only service guidance panel open. |
+| `mobile-dashboard.png` | Dashboard static preview or local dashboard at a mobile viewport with controls readable and not overlapping. |
 | `grafana.png`   | Grafana dashboard at `http://localhost:3001` after running `pnpm k6:docker:load`.                                                  |
 | `loki-logs.png` | Grafana Explore with the Loki data source after generating demo logs.                                                              |
 | `k6-load.png`   | Terminal output from `pnpm k6:docker:load` showing successful checks and request metrics.                                          |

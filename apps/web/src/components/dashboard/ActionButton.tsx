@@ -17,15 +17,15 @@ export function ActionButton({
   onClick,
 }: ActionButtonProps) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-4">
+    <div className="rounded-lg border border-slate-800 bg-slate-900 p-4">
       <div className="mb-4 flex min-h-14 gap-3">
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-slate-100 text-slate-700">
+        <span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-cyan-400/10 text-cyan-100">
           <Icon className="size-5" aria-hidden="true" />
         </span>
         <div className="min-w-0">
-          <h3 className="font-medium text-slate-950">{label}</h3>
+          <h3 className="font-medium text-slate-50">{label}</h3>
           {description ? (
-            <p className="mt-1 text-sm text-slate-500">{description}</p>
+            <p className="mt-1 text-sm text-slate-400">{description}</p>
           ) : null}
         </div>
       </div>

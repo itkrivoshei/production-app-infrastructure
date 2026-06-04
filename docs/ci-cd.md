@@ -21,6 +21,7 @@ The pipeline is designed to keep local development, pull request validation, ima
 | Install            | Dependencies resolve from the lockfile.                                         |
 | Lint / Typecheck   | Source code, TypeScript types, and formatting-sensitive checks pass.            |
 | Tests              | Application test suite passes before build and image validation.                |
+| Docs links         | Relative Markdown links resolve to files in the repository.                     |
 | Build              | API and web packages build successfully.                                        |
 | Compose validation | Docker Compose configuration is valid before runtime checks.                    |
 | Image build        | API and web Docker images build without relying on local-only state.            |
@@ -41,7 +42,7 @@ docker compose build api web
 Run project handoff checks:
 
 ```bash
-./scripts/kubernetes-readiness.sh
+pnpm readiness
 ```
 
 Run the local runtime smoke path:
@@ -86,7 +87,7 @@ Recommended local pre-merge check:
 ```bash
 pnpm run ci
 docker compose config
-./scripts/kubernetes-readiness.sh
+pnpm readiness
 ```
 
 For runtime-sensitive changes, also run:
