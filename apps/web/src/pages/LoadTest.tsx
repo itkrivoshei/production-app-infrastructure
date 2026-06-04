@@ -1,32 +1,85 @@
-import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Activity, AlertTriangle, FileText } from "lucide-react";
 import { ActionButton } from "@/components/dashboard/ActionButton";
+import { ActivityConsole } from "@/components/dashboard/ActivityConsole";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { SectionHeader } from "@/components/dashboard/SectionHeader";
+import { useActivityLog } from "@/lib/activity";
 import { api } from "@/lib/api";
+import { config } from "@/lib/config";
+import { queryClient } from "@/lib/queryClient";
 
 export function LoadTest() {
-  const [lastAction, setLastAction] = useState("No actions yet");
+  const { activityEntries, addActivity } = useActivityLog();
 
   const cpuLoad = useMutation({
     mutationFn: () => api.generateCpuLoad(1000),
-    onSuccess: (data) => {
-      setLastAction(`CPU load: ${data.operations.toLocaleString()} operations`);
+    onSuccess: async (data) => {
+      addActivity({
+        title: "CPU load action completed",
+        description: config.isStaticDemo
+          ? `Static preview simulated ${data.operations.toLocaleString()} CPU operations and updated mock load metrics.`
+          : `Local API generated ${data.operations.toLocaleString()} CPU operations for ${data.durationMs}ms.`,
+        status: "success",
+      });
+      await queryClient.invalidateQueries({ queryKey: ["metrics-text"] });
+    },
+    onError: (error) => {
+      addActivity({
+        title: "CPU load action failed",
+        description:
+          error instanceof Error
+            ? error.message
+            : "The CPU load action could not be completed.",
+        status: "error",
+      });
     },
   });
 
   const demoError = useMutation({
     mutationFn: () => api.generateErrors(),
-    onSuccess: (data) => {
-      setLastAction(`Intentional error: HTTP ${data.statusCode}`);
+    onSuccess: async (data) => {
+      addActivity({
+        title: "Controlled error action completed",
+        description: config.isStaticDemo
+          ? `Static preview added a controlled demo error and adjusted mock error metrics. Mock status: HTTP ${data.statusCode}.`
+          : `Local API returned the expected controlled demo error. Status: HTTP ${data.statusCode}.`,
+        status: "warning",
+      });
+      await queryClient.invalidateQueries({ queryKey: ["metrics-text"] });
+    },
+    onError: (error) => {
+      addActivity({
+        title: "Controlled error action failed",
+        description:
+          error instanceof Error
+            ? error.message
+            : "The controlled error action could not be completed.",
+        status: "error",
+      });
     },
   });
 
   const demoLog = useMutation({
     mutationFn: () => api.generateLog("info", "Frontend generated demo log"),
     onSuccess: (data) => {
-      setLastAction(`Log: ${data.message}`);
+      addActivity({
+        title: "Log action completed",
+        description: config.isStaticDemo
+          ? `Static preview added a mock ${data.level} log entry: "${data.message}".`
+          : `Local API emitted a structured ${data.level} log for the Promtail/Loki pipeline: "${data.message}".`,
+        status: "success",
+      });
+    },
+    onError: (error) => {
+      addActivity({
+        title: "Log action failed",
+        description:
+          error instanceof Error
+            ? error.message
+            : "The log action could not be completed.",
+        status: "error",
+      });
     },
   });
 
@@ -38,7 +91,11 @@ export function LoadTest() {
       />
 
       <div className="mb-4 grid gap-4 md:grid-cols-3">
-        <MetricCard title="Last Action" value={lastAction} />
+        <MetricCard
+          title="Last Action"
+          value={activityEntries[0]?.title ?? "No actions yet"}
+          description={activityEntries[0]?.description ?? "Run a demo action"}
+        />
         <MetricCard title="CPU Action" value={cpuLoad.status} />
         <MetricCard title="Error Action" value={demoError.status} />
       </div>
@@ -66,6 +123,8 @@ export function LoadTest() {
           onClick={() => demoLog.mutate()}
         />
       </div>
+
+      <ActivityConsole entries={activityEntries} className="mt-6" />
     </div>
   );
 }

@@ -126,6 +126,7 @@ jobs:
               --build-arg VITE_API_DOCS_URL=/api/docs
               --build-arg VITE_PROMETHEUS_URL=http://localhost:9090
               --build-arg VITE_GRAFANA_URL=http://localhost:3001
+              --build-arg VITE_LOKI_URL=http://localhost:3100
 
     steps:
       - name: Checkout repository

@@ -42,7 +42,7 @@ export function Logs() {
 
       <div className="space-y-3">
         {entries.length === 0 ? (
-          <div className="rounded-lg border border-slate-200 bg-white p-4 text-sm text-slate-500">
+          <div className="rounded-lg border border-slate-800 bg-slate-900 p-4 text-sm text-slate-400">
             No generated logs yet.
           </div>
         ) : (

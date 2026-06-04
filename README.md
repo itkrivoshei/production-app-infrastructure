@@ -21,7 +21,7 @@ This project demonstrates a production-oriented DevOps workflow around a contain
 Core capabilities:
 
 - Fastify API with health, readiness, OpenAPI, metrics, demo load, and structured logs.
-- React/Vite dashboard served through Nginx.
+- React/Vite dashboard with action feedback, Activity Console events, and static preview guidance.
 - Docker Compose stack with Prometheus, Grafana, Loki, Promtail, and k6.
 - GitHub Actions for CI, GHCR image publishing, CodeQL, Trivy, Hadolint, and ShellCheck.
 - Local rollback workflow with version and health verification.
@@ -97,11 +97,11 @@ docker compose down
 
 ### Online Preview
 
-The online demo shows the DevOps Control Center interface with mock data:
+The online demo shows the DevOps Control Center interface with mock health, readiness, metrics, logs, and deployment data:
 
 [Open the live demo](https://itkrivoshei.github.io/production-app-infrastructure/)
 
-The online demo is a static UI preview. The full observability stack runs locally with Docker Compose.
+The online demo is a static UI preview. Demo actions update mock metrics and the Activity Console, while local-only services such as Grafana, Prometheus, Loki, and API docs open guidance panels instead of broken local URLs. The full observability stack runs locally with Docker Compose.
 
 ### Full Local Demo
 
@@ -179,7 +179,10 @@ cd ../../..
 | `pnpm demo:health`     | Run demo health checks                    |
 | `pnpm demo:load`       | Generate demo load                        |
 | `pnpm demo:rollback`   | Run the rollback demo                     |
+| `pnpm docs:links`      | Validate relative Markdown documentation links |
 | `pnpm health`          | Run health checks                         |
+| `pnpm readiness`       | Run Kubernetes readiness checks           |
+| `pnpm kubernetes:readiness` | Run Kubernetes readiness checks directly |
 | `pnpm logs`            | Show service logs                         |
 | `pnpm k6:docker:smoke` | Run k6 smoke tests in Docker              |
 | `pnpm k6:docker:load`  | Run k6 load tests in Docker               |

@@ -52,6 +52,7 @@ services:
         VITE_API_URL: /api
         VITE_GRAFANA_URL: ${VITE_GRAFANA_URL:-http://localhost:3001}
         VITE_PROMETHEUS_URL: ${VITE_PROMETHEUS_URL:-http://localhost:9090}
+        VITE_LOKI_URL: ${VITE_LOKI_URL:-http://localhost:3100}
         VITE_API_DOCS_URL: /api/docs
     image: devops-control-center-web:local
     container_name: devops-control-center-web

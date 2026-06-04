@@ -87,6 +87,8 @@ docker compose up --build -d
 | `./scripts/logs.sh api`      | Show logs for the API service.                                 |
 | `./scripts/restart.sh api`   | Restart the API service.                                       |
 | `./scripts/clean.sh --force` | Remove local containers, volumes, and generated runtime state. |
+| `pnpm docs:links`            | Validate relative Markdown documentation links.                |
+| `pnpm readiness`             | Run Kubernetes readiness checks.                               |
 
 ## Common Docker Commands
 
@@ -112,6 +114,7 @@ Run individual checks during development:
 pnpm lint
 pnpm typecheck
 pnpm test
+pnpm docs:links
 pnpm build
 ```
 
