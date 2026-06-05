@@ -77,6 +77,24 @@ function createMetricsText() {
 }
 
 export const mockApi = {
+  overview: async () => {
+    recordRequest();
+    return {
+      health: "ok" as const,
+      readiness: "ready" as const,
+      service: "devops-control-center-api",
+      version: "1.0.0",
+      commit: "abc1234",
+      environment: "static-demo",
+      mode: "demo" as const,
+      uptime: uptimeSeconds(),
+      requests: mockState.requests,
+      http5xx: mockState.errors,
+      errorRate:
+        mockState.requests > 0 ? (mockState.errors / mockState.requests) * 100 : 0,
+      timestamp: timestamp(),
+    };
+  },
   health: async () => {
     recordRequest();
     return {

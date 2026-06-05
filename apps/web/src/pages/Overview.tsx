@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   Activity,
@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { ActivityConsole } from "@/components/dashboard/ActivityConsole";
 import { MetricCard } from "@/components/dashboard/MetricCard";
+import { RequestError } from "@/components/dashboard/RequestError";
 import { SectionHeader } from "@/components/dashboard/SectionHeader";
 import { ServiceAccessButton } from "@/components/dashboard/ServiceAccessButton";
 import { StatusCard } from "@/components/dashboard/StatusCard";
@@ -20,7 +21,6 @@ import { Button } from "@/components/ui/button";
 import { useActivityLog } from "@/lib/activity";
 import { api } from "@/lib/api";
 import { config } from "@/lib/config";
-import { summarizeMetrics } from "@/lib/metrics";
 import { queryClient } from "@/lib/queryClient";
 
 function formatUptime(seconds?: number) {
@@ -43,18 +43,16 @@ function formatNumber(value: number) {
   return new Intl.NumberFormat().format(Math.round(value));
 }
 
-async function refreshOverviewQueries() {
-  const queryKeys = [
-    ["health"],
-    ["ready"],
-    ["version"],
-    ["status"],
-    ["metrics-text"],
-  ] as const;
-
-  await Promise.all(
-    queryKeys.map((queryKey) => queryClient.invalidateQueries({ queryKey })),
-  );
+async function refreshOverviewQuery() {
+  await queryClient.invalidateQueries({
+    queryKey: ["overview"],
+    refetchType: "none",
+  });
+  return queryClient.fetchQuery({
+    queryKey: ["overview"],
+    queryFn: api.overview,
+    staleTime: 0,
+  });
 }
 
 export function Overview() {
@@ -70,13 +68,9 @@ export function Overview() {
       status: "info",
     },
   ]);
-  const health = useQuery({ queryKey: ["health"], queryFn: api.health });
-  const ready = useQuery({ queryKey: ["ready"], queryFn: api.ready });
-  const version = useQuery({ queryKey: ["version"], queryFn: api.version });
-  const status = useQuery({ queryKey: ["status"], queryFn: api.status });
-  const metrics = useQuery({
-    queryKey: ["metrics-text"],
-    queryFn: api.metricsText,
+  const overview = useQuery({
+    queryKey: ["overview"],
+    queryFn: api.overview,
     refetchInterval: 10_000,
   });
 
@@ -90,7 +84,7 @@ export function Overview() {
           : `Backend generated ${data.operations.toLocaleString()} CPU operations over ${data.durationMs}ms and exposed the change through metrics/logs.`,
         status: "success",
       });
-      await refreshOverviewQueries();
+      await refreshOverviewQuery();
     },
     onError: (error) => {
       addActivity({
@@ -113,7 +107,7 @@ export function Overview() {
           : `Backend returned the expected controlled demo error. Status: HTTP ${data.statusCode}.`,
         status: "warning",
       });
-      await refreshOverviewQueries();
+      await refreshOverviewQuery();
     },
     onError: (error) => {
       addActivity({
@@ -133,10 +127,10 @@ export function Overview() {
         title: "Demo log generated",
         description: config.isStaticDemo
           ? `Static preview added a mock ${data.level} log entry: "${data.message}".`
-          : `Backend emitted a structured ${data.level} log for Promtail/Loki: "${data.message}".`,
+          : `Backend emitted a structured ${data.level} log for Alloy/Loki: "${data.message}".`,
         status: "success",
       });
-      await refreshOverviewQueries();
+      await refreshOverviewQuery();
     },
     onError: (error) => {
       addActivity({
@@ -154,12 +148,12 @@ export function Overview() {
     setIsHealthCheckPending(true);
 
     try {
-      await refreshOverviewQueries();
+      await refreshOverviewQuery();
       addActivity({
         title: "Health check completed",
         description: config.isStaticDemo
           ? "Static preview refreshed mock health, readiness, version, uptime, and Prometheus-style metric data."
-          : "Local API health, readiness, version, status, and metrics queries were refreshed from the running stack.",
+          : "Local API health, readiness, release metadata, uptime, and HTTP metrics were refreshed from the running stack.",
         status: "success",
       });
     } catch (error) {
@@ -176,19 +170,11 @@ export function Overview() {
     }
   };
 
-  const isApiOk = health.data?.status === "ok";
-  const isReady = ready.data?.status === "ready";
-  const metricsSummary = useMemo(
-    () => summarizeMetrics(metrics.data),
-    [metrics.data],
-  );
-  const isRefreshing =
-    health.isFetching ||
-    ready.isFetching ||
-    version.isFetching ||
-    status.isFetching ||
-    metrics.isFetching ||
-    isHealthCheckPending;
+  const isApiOk = overview.data?.health === "ok";
+  const isReady = overview.data?.readiness === "ready";
+  const demoActionsAvailable =
+    config.isStaticDemo || overview.data?.mode === "demo";
+  const isRefreshing = overview.isFetching || isHealthCheckPending;
 
   return (
     <div>
@@ -252,61 +238,70 @@ export function Overview() {
         </div>
       ) : null}
 
+      {overview.isError ? (
+        <RequestError
+          title="Overview data unavailable"
+          error={overview.error}
+          onRetry={() => void overview.refetch()}
+        />
+      ) : null}
+
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         <StatusCard
           title="API Status"
           value={
-            health.isLoading ? "Checking" : isApiOk ? "Healthy" : "Unhealthy"
+            overview.isLoading ? "Checking" : isApiOk ? "Healthy" : "Unhealthy"
           }
-          status={isApiOk ? "ok" : health.isError ? "error" : "unknown"}
-          description="GET /health"
+          status={isApiOk ? "ok" : overview.isError ? "error" : "unknown"}
+          description="GET /overview"
         />
         <StatusCard
           title="Readiness"
-          value={ready.isLoading ? "Checking" : isReady ? "Ready" : "Not Ready"}
-          status={isReady ? "ok" : ready.isError ? "error" : "unknown"}
-          description="GET /ready"
+          value={
+            overview.isLoading ? "Checking" : isReady ? "Ready" : "Not Ready"
+          }
+          status={isReady ? "ok" : overview.isError ? "error" : "unknown"}
+          description="Aggregated readiness"
         />
         <MetricCard
           title="Environment"
-          value={
-            version.data?.environment ?? status.data?.environment ?? "unknown"
-          }
-          description={version.data?.service ?? "devops-control-center-api"}
+          value={overview.data?.environment ?? "unknown"}
+          description={overview.data?.service ?? "devops-control-center-api"}
         />
         <MetricCard
           title="Version"
-          value={version.data?.version ?? "unknown"}
-          description="GET /version"
+          value={overview.data?.version ?? "unknown"}
+          description="Release metadata"
         />
         <MetricCard
           title="Commit SHA"
-          value={version.data?.commit ?? status.data?.commit ?? "unknown"}
+          value={overview.data?.commit ?? "unknown"}
           description="Release metadata"
         />
         <MetricCard
           title="Uptime"
-          value={formatUptime(status.data?.uptime ?? health.data?.uptime)}
+          value={formatUptime(overview.data?.uptime)}
           description="Backend process uptime"
         />
         <MetricCard
           title="Requests"
-          value={formatNumber(metricsSummary.requests)}
-          description="Sum of http_requests_total"
+          value={formatNumber(overview.data?.requests ?? 0)}
+          description="HTTP requests"
         />
         <MetricCard
-          title="Errors"
-          value={formatNumber(metricsSummary.errors)}
-          description="Sum of app_errors_total"
+          title="HTTP 5xx"
+          value={formatNumber(overview.data?.http5xx ?? 0)}
+          description="Server error responses"
         />
         <MetricCard
           title="Error Rate"
-          value={`${metricsSummary.errorRate.toFixed(1)}%`}
-          description="Errors divided by requests"
+          value={`${(overview.data?.errorRate ?? 0).toFixed(1)}%`}
+          description="HTTP 5xx divided by requests"
         />
       </div>
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-3">
+      {demoActionsAvailable ? (
+        <div className="mt-6 grid gap-4 lg:grid-cols-3">
         <Button
           className="h-12 justify-start"
           onClick={() => cpuLoad.mutate()}
@@ -337,7 +332,13 @@ export function Overview() {
           <FileText className="size-4" aria-hidden="true" />
           <span>{demoLog.isPending ? "Generating Log" : "Generate Logs"}</span>
         </Button>
-      </div>
+        </div>
+      ) : (
+        <div className="mt-6 rounded-lg border border-slate-700 bg-slate-900 p-4 text-sm text-slate-300">
+          Demo actions are disabled in safe mode. Start the local demo profile to
+          generate controlled load, errors, and logs.
+        </div>
+      )}
 
       <ActivityConsole entries={activityEntries} className="mt-6" />
 

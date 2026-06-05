@@ -1,13 +1,24 @@
-import { Activity } from "lucide-react";
-import type { ReactNode } from "react";
+import { Activity, Menu } from "lucide-react";
+import { useState, type ReactNode } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { config } from "@/lib/config";
-import { Sidebar } from "./Sidebar";
+import { NavigationLinks, Sidebar } from "./Sidebar";
 
 type AppLayoutProps = {
   children: ReactNode;
 };
 
 export function AppLayout({ children }: AppLayoutProps) {
+  const [mobileOpen, setMobileOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
       <div className="flex min-h-screen">
@@ -20,6 +31,31 @@ export function AppLayout({ children }: AppLayoutProps) {
             </div>
           ) : null}
           <header className="flex h-16 items-center gap-3 border-b border-slate-800 bg-slate-950 px-4 lg:hidden">
+            <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+              <SheetTrigger asChild>
+                <Button
+                  size="icon"
+                  variant="outline"
+                  aria-label="Open navigation"
+                >
+                  <Menu className="size-4" aria-hidden="true" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent
+                side="left"
+                className="border-slate-800 bg-slate-950 text-slate-100"
+              >
+                <SheetHeader>
+                  <SheetTitle className="text-slate-50">
+                    DevOps Control Center
+                  </SheetTitle>
+                  <SheetDescription className="text-slate-400">
+                    Production infrastructure
+                  </SheetDescription>
+                </SheetHeader>
+                <NavigationLinks onNavigate={() => setMobileOpen(false)} />
+              </SheetContent>
+            </Sheet>
             <span className="flex size-9 items-center justify-center rounded-md bg-cyan-400 text-slate-950">
               <Activity className="size-5" aria-hidden="true" />
             </span>

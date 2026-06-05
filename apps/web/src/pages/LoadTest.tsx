@@ -67,7 +67,7 @@ export function LoadTest() {
         title: "Log action completed",
         description: config.isStaticDemo
           ? `Static preview added a mock ${data.level} log entry: "${data.message}".`
-          : `Local API emitted a structured ${data.level} log for the Promtail/Loki pipeline: "${data.message}".`,
+          : `Local API emitted a structured ${data.level} log for the Alloy/Loki pipeline: "${data.message}".`,
         status: "success",
       });
     },

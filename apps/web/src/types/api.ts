@@ -29,6 +29,21 @@ export type StatusResponse = {
   timestamp: string;
 };
 
+export type OverviewResponse = {
+  health: "ok";
+  readiness: "ready" | "not_ready";
+  service: string;
+  version: string;
+  commit: string;
+  environment: string;
+  mode: "safe" | "demo";
+  uptime: number;
+  requests: number;
+  http5xx: number;
+  errorRate: number;
+  timestamp: string;
+};
+
 export type CpuLoadResponse = {
   status: string;
   type: string;

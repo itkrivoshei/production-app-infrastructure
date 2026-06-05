@@ -8,6 +8,7 @@ import {
   Server,
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
+import type { ComponentProps } from "react";
 import { cn } from "@/lib/utils";
 
 const links = [
@@ -18,6 +19,39 @@ const links = [
   { to: "/system", label: "System Info", icon: Server },
   { to: "/docs", label: "Docs", icon: FileText },
 ];
+
+export function NavigationLinks({
+  onNavigate,
+}: {
+  onNavigate?: ComponentProps<typeof NavLink>["onClick"];
+}) {
+  return (
+    <nav className="space-y-1 p-3" aria-label="Primary navigation">
+      {links.map((link) => {
+        const Icon = link.icon;
+
+        return (
+          <NavLink
+            key={link.to}
+            to={link.to}
+            onClick={onNavigate}
+            className={({ isActive }) =>
+              cn(
+                "flex h-10 items-center gap-3 rounded-md px-3 text-sm transition-colors",
+                isActive
+                  ? "bg-slate-800 text-white"
+                  : "text-slate-400 hover:bg-slate-900 hover:text-white",
+              )
+            }
+          >
+            <Icon className="size-4" aria-hidden="true" />
+            <span>{link.label}</span>
+          </NavLink>
+        );
+      })}
+    </nav>
+  );
+}
 
 export function Sidebar() {
   return (
@@ -38,29 +72,7 @@ export function Sidebar() {
         </div>
       </div>
 
-      <nav className="space-y-1 p-3" aria-label="Primary navigation">
-        {links.map((link) => {
-          const Icon = link.icon;
-
-          return (
-            <NavLink
-              key={link.to}
-              to={link.to}
-              className={({ isActive }) =>
-                cn(
-                  "flex h-10 items-center gap-3 rounded-md px-3 text-sm transition-colors",
-                  isActive
-                    ? "bg-slate-800 text-white"
-                    : "text-slate-400 hover:bg-slate-900 hover:text-white",
-                )
-              }
-            >
-              <Icon className="size-4" aria-hidden="true" />
-              <span>{link.label}</span>
-            </NavLink>
-          );
-        })}
-      </nav>
+      <NavigationLinks />
     </aside>
   );
 }
