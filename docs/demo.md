@@ -2,10 +2,10 @@
 
 This project has two demo modes:
 
-| Mode            | Purpose                                                                          |
-| --------------- | -------------------------------------------------------------------------------- |
-| Online preview  | Static GitHub Pages dashboard with mock data for quick review.                   |
-| Full local demo | Real Docker Compose stack with API, Prometheus, Grafana, Loki, Promtail, and k6. |
+| Mode            | Purpose                                                                        |
+| --------------- | ------------------------------------------------------------------------------ |
+| Online preview  | Static GitHub Pages dashboard with mock data for quick review.                 |
+| Full local demo | Real Docker Compose stack with API, Prometheus, Grafana, Loki, Alloy, and k6. |
 
 ## Online Preview
 
@@ -28,46 +28,46 @@ Static preview actions are intentionally interactive:
 Start the real stack:
 
 ```bash
-docker compose up --build -d
+export COMPOSE_FILE=docker-compose.yml:docker-compose.demo.yml
+docker compose --profile observability up --build -d
 ```
 
 Run the health gate:
 
 ```bash
-./scripts/healthcheck.sh
+pnpm demo:health
 ```
 
 Open the local services:
 
-| Service     | URL                           |
-| ----------- | ----------------------------- |
-| Dashboard   | http://localhost:3000         |
-| API         | http://localhost:8080         |
-| API health  | http://localhost:8080/health  |
-| API docs    | http://localhost:8080/docs    |
-| API metrics | http://localhost:8080/metrics |
-| Prometheus  | http://localhost:9090         |
-| Grafana     | http://localhost:3001         |
-| Loki        | http://localhost:3100         |
+| Service     | URL                               |
+| ----------- | --------------------------------- |
+| Dashboard   | http://localhost:3000             |
+| API health  | http://localhost:3000/api/health  |
+| API docs    | http://localhost:3000/api/docs    |
+| API metrics | http://localhost:3000/api/metrics |
+| Prometheus  | http://localhost:9090             |
+| Grafana     | http://localhost:3001             |
+| Loki        | http://localhost:3100             |
 
 Stop the stack:
 
 ```bash
-docker compose down
+docker compose --profile observability down
 ```
 
 ## Demo 1: Start The Stack
 
 ```bash
-docker compose up --build -d
+docker compose --profile observability up --build -d
 docker compose ps
-./scripts/healthcheck.sh
+pnpm demo:health
 ```
 
 Show:
 
 - Dashboard opens at http://localhost:3000.
-- API health returns green at http://localhost:8080/health.
+- API health returns green at http://localhost:3000/api/health.
 - Prometheus target `devops-control-center-api` is `UP`.
 - Grafana opens with the provisioned DevOps Control Center dashboard.
 
@@ -96,7 +96,8 @@ From the dashboard, click `Generate Errors`.
 Or run:
 
 ```bash
-curl -i -X POST http://localhost:8080/load/errors
+curl -i -X POST http://localhost:3000/api/load/errors \
+  -H "X-Demo-Action: true"
 ```
 
 Show:

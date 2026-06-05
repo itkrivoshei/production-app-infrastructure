@@ -10,17 +10,18 @@ ROLLBACK_PORT="${ROLLBACK_PORT:-8091}"
 ROLLBACK_BASE_URL="${ROLLBACK_BASE_URL:-http://localhost:${ROLLBACK_PORT}}"
 CURRENT_IMAGE="${CURRENT_IMAGE:-devops-control-center-api:rollback-current}"
 PREVIOUS_IMAGE="${PREVIOUS_IMAGE:-devops-control-center-api:rollback-previous}"
+CURRENT_REF="${CURRENT_REF:-HEAD}"
+PREVIOUS_REF="${PREVIOUS_REF:-origin/main}"
 CURRENT_VERSION="${CURRENT_VERSION:-1.1.0}"
 PREVIOUS_VERSION="${PREVIOUS_VERSION:-1.0.0}"
-CURRENT_COMMIT="${CURRENT_COMMIT:-rollback-current}"
-DEFAULT_PREVIOUS_COMMIT="rollback-previous"
-PREVIOUS_COMMIT="${PREVIOUS_COMMIT:-$DEFAULT_PREVIOUS_COMMIT}"
+CURRENT_COMMIT="${CURRENT_COMMIT:-}"
+PREVIOUS_COMMIT="${PREVIOUS_COMMIT:-}"
 
 usage() {
   cat <<'USAGE'
 Usage:
   ./scripts/rollback-demo.sh [rollback-version]
-      Build demo images, deploy current, roll back to the selected version, and verify.
+      Build different git refs, deploy current, roll back, and verify.
 
   ./scripts/rollback-demo.sh v1.0.0
       Run the rollback simulation with v1.0.0 as the rollback target.
@@ -41,11 +42,42 @@ clean_rollback() {
 }
 
 build_demo_images() {
-  info "Building previous API image: ${PREVIOUS_IMAGE}"
-  docker build -f apps/api/Dockerfile -t "$PREVIOUS_IMAGE" .
+  local current_commit
+  local previous_commit
+  local build_root
 
-  info "Building current API image: ${CURRENT_IMAGE}"
-  docker build -f apps/api/Dockerfile -t "$CURRENT_IMAGE" .
+  current_commit="$(git rev-parse "$CURRENT_REF")"
+  previous_commit="$(git rev-parse "$PREVIOUS_REF")"
+  CURRENT_COMMIT="${CURRENT_COMMIT:-$current_commit}"
+  PREVIOUS_COMMIT="${PREVIOUS_COMMIT:-$previous_commit}"
+
+  if [[ "$current_commit" == "$previous_commit" ]]; then
+    die "Rollback refs must resolve to different commits: ${CURRENT_REF} and ${PREVIOUS_REF}"
+  fi
+
+  build_root="$(mktemp -d)"
+
+  mkdir -p "$build_root/current" "$build_root/previous"
+  git archive "$CURRENT_REF" | tar -x -C "$build_root/current"
+  git archive "$PREVIOUS_REF" | tar -x -C "$build_root/previous"
+
+  info "Building previous API image from ${PREVIOUS_REF} (${previous_commit})"
+  docker build \
+    -f "$build_root/previous/apps/api/Dockerfile" \
+    -t "$PREVIOUS_IMAGE" \
+    "$build_root/previous"
+
+  info "Building current API image from ${CURRENT_REF} (${current_commit})"
+  docker build \
+    -f "$build_root/current/apps/api/Dockerfile" \
+    -t "$CURRENT_IMAGE" \
+    "$build_root/current"
+
+  if [[ "$(docker image inspect --format '{{.Id}}' "$CURRENT_IMAGE")" == "$(docker image inspect --format '{{.Id}}' "$PREVIOUS_IMAGE")" ]]; then
+    die "Rollback images are identical; use refs with different application content"
+  fi
+
+  rm -rf "$build_root"
 }
 
 wait_for_api() {
@@ -126,10 +158,6 @@ parse_args() {
       fi
 
       PREVIOUS_VERSION="$1"
-
-      if [[ "$PREVIOUS_COMMIT" == "$DEFAULT_PREVIOUS_COMMIT" ]]; then
-        PREVIOUS_COMMIT="rollback-${PREVIOUS_VERSION#v}"
-      fi
       ;;
   esac
 }

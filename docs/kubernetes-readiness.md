@@ -78,7 +78,7 @@ The project is ready for Kubernetes when:
 - the local stack starts cleanly;
 - health and readiness checks pass;
 - metrics are available to Prometheus;
-- logs are collected through Promtail and Loki;
+- logs are collected through Alloy and Loki;
 - k6 smoke/load checks pass;
 - rollback demo works;
 - security and CodeQL workflows are green;
@@ -90,6 +90,7 @@ The project is ready for Kubernetes when:
 | -------------------------------------------------------------------------- | ---------------------------------------- |
 | [`../scripts/kubernetes-readiness.sh`](../scripts/kubernetes-readiness.sh) | Main readiness validation script.        |
 | [`../scripts/healthcheck.sh`](../scripts/healthcheck.sh)                   | Local stack health validation.           |
+| [`../scripts/compose-integration.sh`](../scripts/compose-integration.sh)   | Safe/demo, k6, and browser integration.   |
 | [`../scripts/rollback-demo.sh`](../scripts/rollback-demo.sh)               | Local rollback workflow demo.            |
 | [`../docker-compose.yml`](../docker-compose.yml)                           | Local runtime stack definition.          |
 | [`../.github/workflows/ci.yml`](../.github/workflows/ci.yml)               | Main CI workflow.                        |

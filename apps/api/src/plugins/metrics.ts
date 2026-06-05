@@ -9,6 +9,11 @@ export type AppMetrics = {
   appErrorsTotal: client.Counter<string>;
   appLoadEventsTotal: client.Counter<string>;
   appInfo: client.Gauge<string>;
+  summary: () => Promise<{
+    requests: number;
+    http5xx: number;
+    errorRate: number;
+  }>;
 };
 
 export function createMetrics(config: AppConfig): AppMetrics {
@@ -65,6 +70,20 @@ export function createMetrics(config: AppConfig): AppMetrics {
     1,
   );
 
+  const summary = async () => {
+    const values = (await httpRequestsTotal.get()).values;
+    const requests = values.reduce((total, value) => total + value.value, 0);
+    const http5xx = values
+      .filter((value) => String(value.labels.status_code).startsWith("5"))
+      .reduce((total, value) => total + value.value, 0);
+
+    return {
+      requests,
+      http5xx,
+      errorRate: requests > 0 ? (http5xx / requests) * 100 : 0,
+    };
+  };
+
   return {
     register,
     httpRequestsTotal,
@@ -72,6 +91,7 @@ export function createMetrics(config: AppConfig): AppMetrics {
     appErrorsTotal,
     appLoadEventsTotal,
     appInfo,
+    summary,
   };
 }
 
@@ -91,7 +111,7 @@ export function registerMetrics(app: FastifyInstance, config: AppConfig): void {
       const start = request.startTime ?? end;
       const durationSeconds = Number(end - start) / 1e9;
 
-      const route = request.routeOptions.url ?? request.url;
+      const route = request.routeOptions.url ?? "unmatched";
       const labels = {
         method: request.method,
         route,

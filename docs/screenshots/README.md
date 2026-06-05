@@ -9,8 +9,9 @@ Screenshots should show the full DevOps workflow: dashboard status, action feedb
 Start the full local stack:
 
 ```bash
-docker compose up --build -d
-./scripts/healthcheck.sh
+export COMPOSE_FILE=docker-compose.yml:docker-compose.demo.yml
+docker compose --profile observability up --build -d
+pnpm demo:health
 ```
 
 Generate traffic before capturing observability screens:
@@ -22,8 +23,9 @@ pnpm k6:docker:load
 Generate demo logs before capturing Loki/Grafana Explore:
 
 ```bash
-curl -fsS -X POST http://localhost:8080/logs/generate \
+curl -fsS -X POST http://localhost:3000/api/logs/generate \
   -H "Content-Type: application/json" \
+  -H "X-Demo-Action: true" \
   -d '{"level":"info","message":"screenshot demo log"}'
 ```
 

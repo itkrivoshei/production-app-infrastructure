@@ -1,5 +1,7 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
+import type { AppConfig } from "../config.js";
+import type { DemoGuard } from "../plugins/demo-guard.js";
 
 const GenerateLogBodySchema = Type.Object({
   level: Type.Optional(
@@ -14,7 +16,11 @@ const GenerateLogBodySchema = Type.Object({
 
 type GenerateLogBody = Static<typeof GenerateLogBodySchema>;
 
-export async function logsRoutes(app: FastifyInstance): Promise<void> {
+export async function logsRoutes(
+  app: FastifyInstance,
+  _config: AppConfig,
+  demoGuard: DemoGuard,
+): Promise<void> {
   app.post<{ Body: GenerateLogBody }>(
     "/logs/generate",
     {
@@ -28,8 +34,11 @@ export async function logsRoutes(app: FastifyInstance): Promise<void> {
             message: Type.String(),
             timestamp: Type.String(),
           }),
+          403: Type.Object({ status: Type.String(), message: Type.String() }),
+          429: Type.Object({ status: Type.String(), message: Type.String() }),
         },
       },
+      preHandler: demoGuard,
     },
     async (request) => {
       const level = request.body.level ?? "info";

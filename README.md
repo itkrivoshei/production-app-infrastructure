@@ -20,12 +20,12 @@ This project demonstrates a production-oriented DevOps workflow around a contain
 
 Core capabilities:
 
-- Fastify API with health, readiness, OpenAPI, metrics, demo load, and structured logs.
+- Fastify API with health, readiness, OpenAPI, bounded metrics, graceful shutdown, and structured logs.
 - React/Vite dashboard with action feedback, Activity Console events, and static preview guidance.
-- Docker Compose stack with Prometheus, Grafana, Loki, Promtail, and k6.
+- Docker Compose stack with Prometheus, Grafana, Loki, Alloy, and k6.
 - GitHub Actions for CI, GHCR image publishing, CodeQL, Trivy, Hadolint, and ShellCheck.
 - Local rollback workflow with version and health verification.
-- Optional Terraform AWS validation layer.
+- Optional Terraform AWS layer that boots the safe stack from digest-pinned GHCR images.
 - Kubernetes handoff readiness checks.
 
 ## Architecture
@@ -40,8 +40,8 @@ flowchart LR
   API --> Logs[Structured Logs]
 
   Metrics --> Prometheus[Prometheus]
-  Logs --> Promtail[Promtail]
-  Promtail --> Loki[Loki]
+  Logs --> Alloy[Alloy]
+  Alloy --> Loki[Loki]
 
   Prometheus --> Grafana[Grafana]
   Loki --> Grafana
@@ -58,13 +58,16 @@ flowchart LR
 | API            | Fastify, TypeScript, OpenAPI, Prometheus metrics    |
 | Web            | React, Vite, TypeScript, Nginx                      |
 | Runtime        | Docker, Docker Compose, pnpm                        |
-| Observability  | Prometheus, Grafana, Loki, Promtail                 |
+| Observability  | Prometheus, Grafana, Loki, Alloy                    |
 | Load testing   | k6 smoke, load, and stress tests                    |
 | CI/CD          | GitHub Actions, GHCR image publishing, GitHub Pages |
 | Security       | CodeQL, Trivy, Hadolint, ShellCheck                 |
 | Infrastructure | Terraform AWS validation layer                      |
 
-## Quick Start
+## Safe Quick Start
+
+The default Compose file exposes only the Nginx edge. It starts the API in
+`APP_MODE=safe`, so `/load/*` and `/logs/generate` are not registered.
 
 ```bash
 corepack enable
@@ -73,19 +76,14 @@ docker compose up --build -d
 ./scripts/healthcheck.sh
 ```
 
-Open the local demo:
+Open the safe local application:
 
-| Service     | URL                                                            |
-| ----------- | -------------------------------------------------------------- |
-| Dashboard   | [http://localhost:3000](http://localhost:3000)                 |
-| API         | [http://localhost:8080](http://localhost:8080)                 |
-| API health  | [http://localhost:8080/health](http://localhost:8080/health)   |
-| API docs    | [http://localhost:8080/docs](http://localhost:8080/docs)       |
-| API metrics | [http://localhost:8080/metrics](http://localhost:8080/metrics) |
-| Prometheus  | [http://localhost:9090](http://localhost:9090)                 |
-| Grafana     | [http://localhost:3001](http://localhost:3001)                 |
-| Loki        | [http://localhost:3100](http://localhost:3100)                 |
-| Promtail    | [http://localhost:9080](http://localhost:9080)                 |
+| Service     | URL                                                                    |
+| ----------- | ---------------------------------------------------------------------- |
+| Dashboard   | [http://localhost:3000](http://localhost:3000)                         |
+| API health  | [http://localhost:3000/api/health](http://localhost:3000/api/health)   |
+| API docs    | [http://localhost:3000/api/docs](http://localhost:3000/api/docs)       |
+| API metrics | [http://localhost:3000/api/metrics](http://localhost:3000/api/metrics) |
 
 Stop the stack:
 
@@ -108,24 +106,25 @@ The online demo is a static UI preview. Demo actions update mock metrics and the
 Run the real stack locally:
 
 ```bash
-docker compose up --build
+export COMPOSE_FILE=docker-compose.yml:docker-compose.demo.yml
+docker compose --profile observability up --build -d
+pnpm demo:health
 ```
 
 Services:
 
-| Service    | URL                                                      |
-| ---------- | -------------------------------------------------------- |
-| Dashboard  | [http://localhost:3000](http://localhost:3000)           |
-| API        | [http://localhost:8080](http://localhost:8080)           |
-| API docs   | [http://localhost:8080/docs](http://localhost:8080/docs) |
-| Prometheus | [http://localhost:9090](http://localhost:9090)           |
-| Grafana    | [http://localhost:3001](http://localhost:3001)           |
-| Loki       | [http://localhost:3100](http://localhost:3100)           |
+| Service    | URL                                                                    |
+| ---------- | ---------------------------------------------------------------------- |
+| Dashboard  | [http://localhost:3000](http://localhost:3000)                         |
+| API docs   | [http://localhost:3000/api/docs](http://localhost:3000/api/docs)       |
+| Prometheus | [http://localhost:9090](http://localhost:9090)                         |
+| Grafana    | [http://localhost:3001](http://localhost:3001)                         |
+| Loki       | [http://localhost:3100](http://localhost:3100)                         |
 
 The dashboard port can still be overridden:
 
 ```bash
-NGINX_PORT=8088 docker compose up --build
+NGINX_PORT=8088 docker compose --profile observability up --build -d
 ```
 
 Demo scenarios:
@@ -133,7 +132,8 @@ Demo scenarios:
 ```bash
 pnpm demo:health
 pnpm k6:docker:load
-curl -i -X POST http://localhost:8080/load/errors
+curl -i -X POST http://localhost:3000/api/load/errors \
+  -H "X-Demo-Action: true"
 ./scripts/restart.sh api
 ./scripts/rollback-demo.sh v1.0.0
 ./scripts/rollback-demo.sh --clean
@@ -147,12 +147,9 @@ See the [Demo guide](docs/demo.md) for the step-by-step walkthrough.
 
 ```bash
 pnpm run ci
-docker compose config
-docker compose up --build -d
-./scripts/healthcheck.sh
-./scripts/kubernetes-readiness.sh
-pnpm k6:docker:smoke
-pnpm k6:docker:load
+pnpm observability:validate
+pnpm e2e:pages
+RUN_BROWSER_E2E=true pnpm integration:compose
 ./scripts/rollback-demo.sh v1.0.0
 ./scripts/rollback-demo.sh --clean
 ```
@@ -192,21 +189,23 @@ cd ../../..
 Direct API checks:
 
 ```bash
-curl -fsS http://localhost:8080/health
-curl -fsS http://localhost:8080/ready
-curl -fsS http://localhost:8080/version
-curl -fsS http://localhost:8080/metrics | head
+curl -fsS http://localhost:3000/api/health
+curl -fsS http://localhost:3000/api/ready
+curl -fsS http://localhost:3000/api/version
+curl -fsS http://localhost:3000/api/metrics | head
 ```
 
 Generate traffic and logs:
 
 ```bash
-curl -fsS -X POST http://localhost:8080/load/cpu \
+curl -fsS -X POST http://localhost:3000/api/load/cpu \
   -H "Content-Type: application/json" \
+  -H "X-Demo-Action: true" \
   -d '{"durationMs":500}'
 
-curl -fsS -X POST http://localhost:8080/logs/generate \
+curl -fsS -X POST http://localhost:3000/api/logs/generate \
   -H "Content-Type: application/json" \
+  -H "X-Demo-Action: true" \
   -d '{"level":"info","message":"manual demo log"}'
 ```
 

@@ -8,8 +8,8 @@ The pipeline is designed to keep local development, pull request validation, ima
 
 | Workflow                                            | Purpose                                                                                                                   |
 | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| [`ci.yml`](../.github/workflows/ci.yml)             | Installs dependencies, runs lint/typecheck/test/build checks, validates Docker Compose config, and builds API/web images. |
-| [`docker.yml`](../.github/workflows/docker.yml)     | Builds API and web Docker images and publishes them to GitHub Container Registry on `main` and tags.                      |
+| [`ci.yml`](../.github/workflows/ci.yml)             | Runs coverage, Terraform/Compose/observability validation, Compose integration, k6, and browser E2E.                      |
+| [`docker.yml`](../.github/workflows/docker.yml)     | Builds API/web images and publishes them with SBOM and provenance on `main` and tags.                                      |
 | [`security.yml`](../.github/workflows/security.yml) | Runs Trivy filesystem/image scans, Hadolint, and ShellCheck.                                                              |
 | [`codeql.yml`](../.github/workflows/codeql.yml)     | Runs GitHub CodeQL security analysis.                                                                                     |
 | [`pages.yml`](../.github/workflows/pages.yml)       | Builds and publishes the static dashboard demo to GitHub Pages.                                                           |
@@ -20,11 +20,12 @@ The pipeline is designed to keep local development, pull request validation, ima
 | ------------------ | ------------------------------------------------------------------------------- |
 | Install            | Dependencies resolve from the lockfile.                                         |
 | Lint / Typecheck   | Source code, TypeScript types, and formatting-sensitive checks pass.            |
-| Tests              | Application test suite passes before build and image validation.                |
+| Tests / coverage   | API and web suites pass the configured coverage thresholds.                     |
 | Docs links         | Relative Markdown links resolve to files in the repository.                     |
 | Build              | API and web packages build successfully.                                        |
 | Compose validation | Docker Compose configuration is valid before runtime checks.                    |
-| Image build        | API and web Docker images build without relying on local-only state.            |
+| Integration        | Safe/demo Compose, k6 smoke, and local browser E2E pass.                        |
+| Infra validation   | Terraform, safe/demo Compose, Prometheus rules, and Alloy config validate.       |
 | Security scans     | Source, images, Dockerfiles, and shell scripts pass configured security checks. |
 | Deployment         | The static demo can be built and published through GitHub Pages.                |
 
@@ -36,7 +37,9 @@ Run the main CI path locally before opening or updating a pull request:
 pnpm install
 pnpm run ci
 docker compose config --quiet
-docker compose build api web
+pnpm observability:validate
+RUN_BROWSER_E2E=true pnpm integration:compose
+pnpm e2e:pages
 ```
 
 Run project handoff checks:
@@ -48,10 +51,7 @@ pnpm readiness
 Run the local runtime smoke path:
 
 ```bash
-docker compose up --build -d
-./scripts/healthcheck.sh
-pnpm k6:docker:smoke
-docker compose down
+RUN_BROWSER_E2E=true pnpm integration:compose
 ```
 
 ## GHCR Images
@@ -81,22 +81,21 @@ Before merging, the pull request should have green checks for:
 - Security scans
 - CodeQL
 - GitHub Pages build, when demo files are affected
+- Both CodeQL languages: `actions` and `javascript-typescript`
 
 Recommended local pre-merge check:
 
 ```bash
 pnpm run ci
 docker compose config
+pnpm observability:validate
 pnpm readiness
 ```
 
 For runtime-sensitive changes, also run:
 
 ```bash
-docker compose up --build -d
-./scripts/healthcheck.sh
-pnpm k6:docker:smoke
-docker compose down
+RUN_BROWSER_E2E=true pnpm integration:compose
 ```
 
 ## Release Flow

@@ -5,14 +5,13 @@ set -Eeuo pipefail
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.yml}"
 
-API_PORT="${API_PORT:-8080}"
 NGINX_PORT="${NGINX_PORT:-3000}"
 PROMETHEUS_PORT="${PROMETHEUS_PORT:-9090}"
 GRAFANA_PORT="${GRAFANA_PORT:-3001}"
 LOKI_PORT="${LOKI_PORT:-3100}"
-PROMTAIL_PORT="${PROMTAIL_PORT:-9080}"
+ALLOY_PORT="${ALLOY_PORT:-12345}"
 
-VALID_SERVICES=("api" "web" "nginx" "prometheus" "grafana" "loki" "promtail" "k6")
+VALID_SERVICES=("api" "web" "nginx" "prometheus" "grafana" "loki" "alloy" "k6")
 
 info() {
   printf "\033[1;34m[INFO]\033[0m %s\n" "$*"
@@ -84,5 +83,14 @@ validate_service_or_empty() {
 }
 
 compose() {
-  docker compose -f "$COMPOSE_FILE" "$@"
+  local -a compose_files=()
+  local -a files=()
+  local compose_file
+
+  IFS=":" read -r -a files <<<"$COMPOSE_FILE"
+  for compose_file in "${files[@]}"; do
+    compose_files+=("-f" "$compose_file")
+  done
+
+  docker compose "${compose_files[@]}" "$@"
 }

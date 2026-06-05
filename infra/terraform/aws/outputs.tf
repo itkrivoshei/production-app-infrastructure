@@ -20,7 +20,7 @@ output "ec2_public_ip" {
 
 output "ec2_app_url" {
   description = "HTTP URL for the optional EC2 demo host."
-  value       = try("http://${aws_instance.app[0].public_ip}:8088", null)
+  value       = try("http://${aws_instance.app[0].public_ip}", null)
 }
 
 output "security_group_id" {

@@ -11,6 +11,7 @@ import {
 } from "recharts";
 import { BarChart3, Gauge } from "lucide-react";
 import { MetricCard } from "@/components/dashboard/MetricCard";
+import { RequestError } from "@/components/dashboard/RequestError";
 import { SectionHeader } from "@/components/dashboard/SectionHeader";
 import { ServiceAccessButton } from "@/components/dashboard/ServiceAccessButton";
 import { api } from "@/lib/api";
@@ -62,10 +63,24 @@ export function Metrics() {
         }
       />
 
+      {metrics.isError ? (
+        <RequestError
+          title="Metrics unavailable"
+          error={metrics.error}
+          onRetry={() => void metrics.refetch()}
+        />
+      ) : null}
+
       <div className="grid gap-4 md:grid-cols-3">
         <MetricCard
           title="Metrics Endpoint"
-          value={metrics.isSuccess ? "Available" : "Checking"}
+          value={
+            metrics.isError
+              ? "Unavailable"
+              : metrics.isSuccess
+                ? "Available"
+                : "Checking"
+          }
         />
         <MetricCard title="Metric Lines" value={metricLines} />
         <MetricCard title="Refresh Interval" value="10s" />
@@ -73,7 +88,8 @@ export function Metrics() {
 
       <div className="mt-6 grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(360px,480px)]">
         <pre className="max-h-[520px] overflow-auto rounded-lg border border-slate-800 bg-slate-950 p-4 text-xs leading-5 text-slate-100">
-          {metrics.data ?? "Loading metrics..."}
+          {metrics.data ??
+            (metrics.isError ? "Metrics request failed." : "Loading metrics...")}
         </pre>
         <div className="rounded-lg border border-slate-800 bg-slate-900 p-4">
           <h2 className="text-sm font-semibold text-slate-50">

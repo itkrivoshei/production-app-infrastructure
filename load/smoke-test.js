@@ -17,6 +17,7 @@ export const options = {
 const jsonHeaders = {
   headers: {
     "Content-Type": "application/json",
+    "X-Demo-Action": "true",
   },
 };
 

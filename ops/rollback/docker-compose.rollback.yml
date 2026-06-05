@@ -9,8 +9,7 @@ services:
       COMMIT_SHA: ${COMMIT_SHA:-rollback-current}
       PORT: 8080
       LOG_LEVEL: ${LOG_LEVEL:-info}
-      ENABLE_DEMO_LOAD: "true"
-      ENABLE_DEMO_ERRORS: "true"
+      APP_MODE: safe
     ports:
       - "${ROLLBACK_PORT:-8091}:8080"
     networks:

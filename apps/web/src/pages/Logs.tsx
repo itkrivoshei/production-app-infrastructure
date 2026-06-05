@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { FileText } from "lucide-react";
 import { SectionHeader } from "@/components/dashboard/SectionHeader";
+import { RequestError } from "@/components/dashboard/RequestError";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 
@@ -39,6 +40,14 @@ export function Logs() {
           </Button>
         }
       />
+
+      {generateLog.isError ? (
+        <RequestError
+          title="Demo log generation failed"
+          error={generateLog.error}
+          onRetry={() => generateLog.mutate()}
+        />
+      ) : null}
 
       <div className="space-y-3">
         {entries.length === 0 ? (

@@ -3,7 +3,7 @@ import { check, group, sleep } from "k6";
 
 const BASE_URL = __ENV.TARGET_BASE_URL || "http://localhost:8088";
 
-http.setResponseCallback(http.expectedStatuses({ min: 200, max: 399 }, 500));
+http.setResponseCallback(http.expectedStatuses({ min: 200, max: 399 }, 409, 500));
 
 export const options = {
   stages: [
@@ -23,6 +23,7 @@ export const options = {
 const jsonHeaders = {
   headers: {
     "Content-Type": "application/json",
+    "X-Demo-Action": "true",
   },
 };
 
@@ -62,12 +63,17 @@ export default function () {
       );
 
       check(response, {
-        "cpu load generated": (res) => res.status === 200,
+        "cpu load generated or bounded": (res) =>
+          res.status === 200 || res.status === 409,
       });
     }
 
     if (roll >= 90) {
-      const response = http.post(`${BASE_URL}/api/load/errors`);
+      const response = http.post(
+        `${BASE_URL}/api/load/errors`,
+        JSON.stringify({}),
+        jsonHeaders,
+      );
 
       check(response, {
         "intentional error generated": (res) => res.status === 500,

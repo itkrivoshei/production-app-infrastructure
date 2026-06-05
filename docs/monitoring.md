@@ -14,33 +14,34 @@ targets:
 The same metrics endpoint is also available locally for direct checks:
 
 ```text
-http://localhost:8080/metrics
+http://localhost:3000/api/metrics
 ```
 
 Grafana is provisioned with Prometheus as a metrics datasource and dashboards for the local demo environment.
 
 ## Local Endpoints
 
-| Service            | URL                           |
-| ------------------ | ----------------------------- |
-| API metrics        | http://localhost:8080/metrics |
-| Prometheus         | http://localhost:9090         |
-| Prometheus targets | http://localhost:9090/targets |
-| Grafana            | http://localhost:3001         |
+| Service            | URL                               |
+| ------------------ | --------------------------------- |
+| API metrics        | http://localhost:3000/api/metrics |
+| Prometheus         | http://localhost:9090             |
+| Prometheus targets | http://localhost:9090/targets     |
+| Grafana            | http://localhost:3001             |
 
 ## Verify
 
 Start the stack and run the health checks:
 
 ```bash
-docker compose up --build -d
-./scripts/healthcheck.sh
+export COMPOSE_FILE=docker-compose.yml:docker-compose.demo.yml
+docker compose --profile observability up --build -d
+pnpm demo:health
 ```
 
 Check that the API exposes metrics:
 
 ```bash
-curl -fsS http://localhost:8080/metrics | head
+curl -fsS http://localhost:3000/api/metrics | head
 ```
 
 Check that Prometheus can see the API target:
@@ -81,7 +82,9 @@ rate(http_requests_total[1m])
 Error rate:
 
 ```promql
-rate(app_errors_total[1m])
+sum(rate(http_requests_total{status_code=~"5.."}[5m]))
+/
+sum(rate(http_requests_total[5m]))
 ```
 
 95th percentile request duration:
@@ -132,22 +135,25 @@ docker compose restart grafana
 Generate CPU load:
 
 ```bash
-curl -fsS -X POST http://localhost:8080/load/cpu \
+curl -fsS -X POST http://localhost:3000/api/load/cpu \
   -H "Content-Type: application/json" \
+  -H "X-Demo-Action: true" \
   -d '{"durationMs":1000}'
 ```
 
 Generate controlled errors:
 
 ```bash
-curl -i -X POST http://localhost:8080/load/errors
+curl -i -X POST http://localhost:3000/api/load/errors \
+  -H "X-Demo-Action: true"
 ```
 
 Generate demo logs:
 
 ```bash
-curl -fsS -X POST http://localhost:8080/logs/generate \
+curl -fsS -X POST http://localhost:3000/api/logs/generate \
   -H "Content-Type: application/json" \
+  -H "X-Demo-Action: true" \
   -d '{"level":"info","message":"manual monitoring demo log"}'
 ```
 
@@ -162,8 +168,8 @@ pnpm k6:docker:load
 
 | Problem                   | Check                                                                                             |
 | ------------------------- | ------------------------------------------------------------------------------------------------- |
-| API metrics are empty     | Open http://localhost:8080/metrics and confirm the API is running.                                |
+| API metrics are empty     | Open http://localhost:3000/api/metrics and confirm the API is running.                              |
 | Prometheus target is down | Run `docker compose ps` and check Prometheus target status at http://localhost:9090/targets.      |
 | Grafana has no data       | Confirm Prometheus is scraping the API and restart Grafana with `docker compose restart grafana`. |
 | Metrics do not change     | Generate activity with `/load/cpu`, `/load/errors`, or `pnpm k6:docker:load`.                     |
-| Stack state looks stale   | Restart the stack with `docker compose down && docker compose up --build -d`.                     |
+| Stack state looks stale   | Restart the demo stack with `pnpm demo:down && pnpm demo:up`.                                    |

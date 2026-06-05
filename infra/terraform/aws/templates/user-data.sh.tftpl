@@ -1,18 +1,169 @@
 #!/usr/bin/env bash
-set -euxo pipefail
+set -Eeuxo pipefail
+
+COMPOSE_VERSION="v5.1.4"
+INSTALL_DIR="/opt/devops-control-center"
 
 dnf update -y
-dnf install -y docker
+dnf install -y docker curl
 systemctl enable --now docker
 
-mkdir -p /opt/devops-control-center
+architecture="$(uname -m)"
+case "$architecture" in
+  x86_64)
+    compose_arch="x86_64"
+    ;;
+  aarch64)
+    compose_arch="aarch64"
+    ;;
+  *)
+    echo "Unsupported architecture: $architecture" >&2
+    exit 1
+    ;;
+esac
 
-cat >/opt/devops-control-center/README.md <<'EOF'
-This optional EC2 host is a Terraform proof target for Project 1.
+install -d -m 0755 /usr/local/lib/docker/cli-plugins "$INSTALL_DIR"
+curl -fsSLo /tmp/docker-compose \
+  "https://github.com/docker/compose/releases/download/$${COMPOSE_VERSION}/docker-compose-linux-$${compose_arch}"
+curl -fsSLo /tmp/docker-compose.sha256 \
+  "https://github.com/docker/compose/releases/download/$${COMPOSE_VERSION}/docker-compose-linux-$${compose_arch}.sha256"
+(
+  cd /tmp
+  sed -i 's#docker-compose-linux-[^ ]*#docker-compose#' docker-compose.sha256
+  sha256sum -c docker-compose.sha256
+)
+install -m 0755 /tmp/docker-compose /usr/local/lib/docker/cli-plugins/docker-compose
 
-Images intended for deployment:
-- API: ${api_image}
-- Web: ${web_image}
+cat >"$INSTALL_DIR/nginx.conf" <<'NGINX'
+pid /tmp/nginx.pid;
+events {}
+http {
+  include /etc/nginx/mime.types;
+  client_body_temp_path /tmp/client_temp;
+  proxy_temp_path /tmp/proxy_temp;
+  fastcgi_temp_path /tmp/fastcgi_temp;
+  uwsgi_temp_path /tmp/uwsgi_temp;
+  scgi_temp_path /tmp/scgi_temp;
+  client_max_body_size 64k;
+  server_tokens off;
 
-Kubernetes should replace this host-level demo with Kubernetes manifests or Helm.
-EOF
+  upstream api_upstream { server api:8080; }
+  upstream web_upstream { server web:8080; }
+
+  server {
+    listen 8080;
+    server_name _;
+    access_log /dev/stdout;
+    error_log /dev/stderr warn;
+
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header Referrer-Policy "no-referrer" always;
+
+    location /nginx-health {
+      access_log off;
+      return 200 "nginx ok\n";
+      add_header Content-Type text/plain;
+    }
+
+    location /api/ {
+      proxy_pass http://api_upstream/;
+      proxy_http_version 1.1;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location / {
+      proxy_pass http://web_upstream;
+      proxy_http_version 1.1;
+      proxy_set_header Host $host;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+    }
+  }
+}
+NGINX
+
+cat >"$INSTALL_DIR/compose.yml" <<'COMPOSE'
+x-app-security: &app-security
+  init: true
+  read_only: true
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  tmpfs:
+    - /tmp
+
+services:
+  api:
+    image: ${api_image}
+    environment:
+      APP_ENV: aws-demo
+      APP_MODE: safe
+      LOG_FORMAT: json
+      PORT: 8080
+    expose:
+      - "8080"
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:8080/health').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    <<: *app-security
+
+  web:
+    image: ${web_image}
+    expose:
+      - "8080"
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    <<: *app-security
+    tmpfs:
+      - /tmp
+      - /var/cache/nginx
+      - /var/run
+
+  edge:
+    image: nginxinc/nginx-unprivileged:1.29-alpine3.23
+    ports:
+      - "80:8080"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+      web:
+        condition: service_started
+    <<: *app-security
+    tmpfs:
+      - /tmp
+      - /var/cache/nginx
+      - /var/run
+COMPOSE
+
+cd "$INSTALL_DIR"
+docker compose -f compose.yml pull
+docker compose -f compose.yml up -d
+
+for attempt in $(seq 1 30); do
+  if curl -fsS --max-time 5 http://127.0.0.1/api/health >/dev/null; then
+    exit 0
+  fi
+  sleep 2
+done
+
+docker compose -f compose.yml logs >&2
+exit 1
