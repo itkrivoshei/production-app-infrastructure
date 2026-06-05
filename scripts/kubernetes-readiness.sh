@@ -88,6 +88,7 @@ check_loki_ingestion() {
   curl -fsS --max-time 8 \
     -X POST "http://localhost:${NGINX_PORT}/api/logs/generate" \
     -H "Content-Type: application/json" \
+    -H "X-Demo-Action: true" \
     -d "{\"level\":\"info\",\"message\":\"${message}\"}" >/dev/null
 
   query="{service=\"api\"} |= \"${message}\""
