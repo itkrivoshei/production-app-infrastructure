@@ -17,7 +17,8 @@ The load tests exercise the public local entrypoint through Nginx, so the test p
 Start the stack and run the smoke/load tests through Docker:
 
 ```bash
-docker compose up --build -d
+export COMPOSE_FILE=docker-compose.yml:docker-compose.demo.yml
+docker compose --profile observability up --build -d
 pnpm k6:docker:smoke
 pnpm k6:docker:load
 ```
@@ -31,7 +32,7 @@ pnpm k6:docker:stress
 Stop the stack after testing:
 
 ```bash
-docker compose down
+docker compose --profile observability down
 ```
 
 ## Local k6
@@ -49,7 +50,7 @@ TARGET_BASE_URL=http://localhost:3000 pnpm k6:stress
 Check that load-test events are visible in API metrics:
 
 ```bash
-curl -fsS http://localhost:8080/metrics | grep app_load_events_total
+curl -fsS http://localhost:3000/api/metrics | grep app_load_events_total
 ```
 
 Check that generated API logs reached Loki:
@@ -62,30 +63,27 @@ curl -G -fsS http://localhost:3100/loki/api/v1/query \
 
 Useful local observability URLs:
 
-| Service     | URL                           |
-| ----------- | ----------------------------- |
-| Dashboard   | http://localhost:3000         |
-| API metrics | http://localhost:8080/metrics |
-| Prometheus  | http://localhost:9090         |
-| Grafana     | http://localhost:3001         |
-| Loki        | http://localhost:3100         |
+| Service     | URL                               |
+| ----------- | --------------------------------- |
+| Dashboard   | http://localhost:3000             |
+| API metrics | http://localhost:3000/api/metrics |
+| Prometheus  | http://localhost:9090             |
+| Grafana     | http://localhost:3001             |
+| Loki        | http://localhost:3100             |
 
 ## PR Expectations
 
 For normal pull requests, run:
 
 ```bash
-docker compose up --build -d
-pnpm k6:docker:smoke
-docker compose down
+pnpm integration:compose
 ```
 
 For runtime-sensitive changes, also run:
 
 ```bash
-docker compose up --build -d
+RUN_BROWSER_E2E=true pnpm integration:compose
 pnpm k6:docker:load
-docker compose down
 ```
 
 Use `stress-test.js` only for manual experiments. It is intentionally not part of the default quality gate.

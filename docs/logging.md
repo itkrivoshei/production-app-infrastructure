@@ -2,7 +2,7 @@
 
 The API writes structured Pino logs to `stdout` and `stderr`.
 
-Docker collects container logs, Promtail discovers running containers, and Loki stores queryable log streams. Grafana uses Loki as a datasource for log exploration and dashboards.
+Docker collects container logs, Alloy discovers running containers, and Loki stores queryable log streams. Grafana uses Loki as a datasource for log exploration and dashboards.
 
 ## Flow
 
@@ -10,7 +10,7 @@ Docker collects container logs, Promtail discovers running containers, and Loki 
 API container
   -> stdout/stderr JSON logs
   -> Docker container logs
-  -> Promtail
+  -> Alloy
   -> Loki
   -> Grafana
 ```
@@ -20,7 +20,7 @@ API container
 | Component              | Purpose                                            | Config                                                                                              |
 | ---------------------- | -------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
 | Loki                   | Stores local log streams                           | [`ops/loki/loki-config.yml`](../ops/loki/loki-config.yml)                                           |
-| Promtail               | Discovers Docker containers and ships logs to Loki | [`ops/promtail/promtail-config.yml`](../ops/promtail/promtail-config.yml)                           |
+| Alloy                  | Discovers Docker containers and ships logs to Loki | [`ops/alloy/config.alloy`](../ops/alloy/config.alloy)                                                |
 | Grafana datasource     | Connects Grafana to Loki                           | [`ops/grafana/provisioning/datasources/loki.yml`](../ops/grafana/provisioning/datasources/loki.yml) |
 | Grafana logs dashboard | Provides a ready-to-use logs dashboard             | [`ops/grafana/dashboards/devops-logs.json`](../ops/grafana/dashboards/devops-logs.json)             |
 
@@ -29,15 +29,17 @@ API container
 Start the stack:
 
 ```bash
-docker compose up --build -d
-./scripts/healthcheck.sh
+export COMPOSE_FILE=docker-compose.yml:docker-compose.demo.yml
+docker compose --profile observability up --build -d
+pnpm demo:health
 ```
 
 Generate a manual API log:
 
 ```bash
-curl -fsS -X POST http://localhost:8080/logs/generate \
+curl -fsS -X POST http://localhost:3000/api/logs/generate \
   -H "Content-Type: application/json" \
+  -H "X-Demo-Action: true" \
   -d '{"level":"info","message":"manual loki check"}'
 ```
 
@@ -132,11 +134,11 @@ Check whether the API writes logs:
 docker compose logs api --tail=50
 ```
 
-Check whether Promtail is running:
+Check whether Alloy is running:
 
 ```bash
-docker compose ps promtail
-docker compose logs promtail --tail=50
+docker compose ps alloy
+docker compose logs alloy --tail=50
 ```
 
 Check whether Loki is reachable:
@@ -161,6 +163,6 @@ If `{service="api"}` returns no logs, verify:
 
 - the stack is running;
 - the API container produced logs;
-- Promtail can read Docker container logs;
-- Loki is reachable from Promtail;
-- the `service` label is configured as expected in Promtail.
+- Alloy can read Docker container logs;
+- Loki is reachable from Alloy;
+- the `service` label is configured as expected in Alloy.

@@ -18,9 +18,10 @@ docker compose logs nginx
 For a full rebuild:
 
 ```bash
-docker compose down --remove-orphans
-docker compose up --build -d
-./scripts/healthcheck.sh
+export COMPOSE_FILE=docker-compose.yml:docker-compose.demo.yml
+docker compose --profile observability down --remove-orphans
+docker compose --profile observability up --build -d
+pnpm demo:health
 ```
 
 ## Stack Does Not Start
@@ -62,13 +63,12 @@ Check which process uses the port:
 
 ```bash
 sudo lsof -i :3000
-sudo lsof -i :8080
 ```
 
-Override local ports with environment variables:
+Override the only public application port:
 
 ```bash
-NGINX_PORT=18088 API_PORT=18080 docker compose up --build -d
+NGINX_PORT=18088 docker compose up --build -d
 ```
 
 Then open:
@@ -82,9 +82,9 @@ http://localhost:18088
 Check the API directly:
 
 ```bash
-curl -i http://localhost:8080/health
-curl -i http://localhost:8080/ready
-curl -i http://localhost:8080/version
+curl -i http://localhost:3000/api/health
+curl -i http://localhost:3000/api/ready
+curl -i http://localhost:3000/api/version
 ```
 
 Check API logs:
@@ -127,7 +127,7 @@ curl -i http://localhost:3000/api/health
 Check that the API exposes metrics:
 
 ```bash
-curl -fsS http://localhost:8080/metrics | head
+curl -fsS http://localhost:3000/api/metrics | head
 ```
 
 Check Prometheus targets:
@@ -175,8 +175,9 @@ Then verify that datasources are provisioned and reachable.
 Generate an API log entry:
 
 ```bash
-curl -fsS -X POST http://localhost:8080/logs/generate \
+curl -fsS -X POST http://localhost:3000/api/logs/generate \
   -H "Content-Type: application/json" \
+  -H "X-Demo-Action: true" \
   -d '{"level":"info","message":"debug loki"}'
 ```
 
@@ -188,16 +189,16 @@ curl -G -fsS http://localhost:3100/loki/api/v1/query_range \
   --data-urlencode 'limit=5'
 ```
 
-Check Promtail logs:
+Check Alloy logs:
 
 ```bash
-docker compose logs promtail
+docker compose logs alloy
 ```
 
-Restart Promtail if container discovery looks stale:
+Restart Alloy if container discovery looks stale:
 
 ```bash
-docker compose restart promtail
+docker compose restart alloy
 ```
 
 ## k6 Fails To Start
@@ -205,8 +206,9 @@ docker compose restart promtail
 Make sure the stack is healthy first:
 
 ```bash
+export COMPOSE_FILE=docker-compose.yml:docker-compose.demo.yml
 docker compose up --build -d
-./scripts/healthcheck.sh
+pnpm demo:health
 ```
 
 Run the smoke test:
@@ -243,7 +245,8 @@ Clean rollback demo resources:
 ./scripts/rollback-demo.sh --clean
 ```
 
-If image tags are missing, rebuild the local images before rerunning the demo.
+If refs cannot be resolved, fetch them first. The script intentionally rejects
+identical refs and identical resulting images.
 
 ## Terraform Is Not Initialized
 
@@ -297,5 +300,5 @@ docker compose ps
 docker compose logs api
 docker compose logs nginx
 docker compose logs prometheus
-docker compose logs promtail
+docker compose logs alloy
 ```

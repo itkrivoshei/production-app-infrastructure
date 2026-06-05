@@ -2,7 +2,9 @@
 
 The optional AWS Terraform layer lives in [`infra/terraform/aws`](../infra/terraform/aws).
 
-It is intentionally separated from the local Docker Compose stack. The local stack works without AWS credentials, while this layer provides a validation-ready infrastructure path for future cloud deployment work.
+It is intentionally separated from the local Docker Compose stack. The local
+stack works without AWS credentials. When explicitly enabled, Terraform boots
+the safe API/web/edge Compose stack on EC2 and exposes only HTTP port `80`.
 
 ## Scope
 
@@ -11,6 +13,8 @@ The AWS layer defines:
 - ECR repositories for API and web images.
 - ECR lifecycle policies for `sha-*` image tags.
 - Optional EC2 demo infrastructure, disabled by default.
+- An SSM instance profile without public SSH by default.
+- EC2 user data that installs verified Docker Compose and starts the safe stack.
 
 The default configuration is safe for local validation and does not require creating cloud resources.
 
@@ -49,9 +53,25 @@ To include it in the plan, set:
 
 ```hcl
 enable_ec2_demo = true
+api_image       = "ghcr.io/owner/devops-control-center-api@sha256:<digest>"
+web_image       = "ghcr.io/owner/devops-control-center-web@sha256:<digest>"
 ```
 
-Use this only for a controlled demo environment. Do not enable it casually, because EC2 resources may create AWS costs.
+Both application images must be immutable `ghcr.io` references pinned by
+digest. Mutable tags such as `latest` and `sha-*` are rejected. The instance
+starts `APP_MODE=safe`, does not register demo actions, restarts the stack after
+reboot, and serves the dashboard plus `/api/health` on port `80`.
+
+After `terraform apply`, validate the deployment:
+
+```bash
+APP_URL="$(terraform output -raw ec2_app_url)"
+cd ../../..
+./scripts/aws-smoke.sh "$APP_URL"
+```
+
+Use this only for a controlled demo environment. EC2 and networking resources
+may create AWS costs.
 
 ## Safety Rules
 
@@ -83,7 +103,4 @@ terraform.tfvars
 *.tfstate.backup
 *.tfplan
 .terraform/
-.terraform.lock.hcl
 ```
-
-Keep `.terraform.lock.hcl` only if the project intentionally decides to lock provider versions in the repository.

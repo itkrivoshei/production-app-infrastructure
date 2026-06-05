@@ -39,44 +39,44 @@ The Vite development server proxies `/api` requests to the local API service.
 
 ## Full Docker Stack
 
-Use this mode when validating the full local environment with Nginx, API, dashboard, Prometheus, Grafana, Loki, Promtail, and k6 support.
+Use this mode when validating the full local environment with Nginx, API, dashboard, Prometheus, Grafana, Loki, Alloy, and k6 support.
 
 Start the stack:
 
 ```bash
-docker compose up --build -d
-./scripts/healthcheck.sh
+export COMPOSE_FILE=docker-compose.yml:docker-compose.demo.yml
+docker compose --profile observability up --build -d
+pnpm demo:health
 ```
 
 Stop the stack:
 
 ```bash
-docker compose down
+docker compose --profile observability down
 ```
 
 Rebuild from a clean state:
 
 ```bash
-docker compose down --remove-orphans
-docker compose up --build -d
-./scripts/healthcheck.sh
+docker compose --profile observability down --remove-orphans
+docker compose --profile observability up --build -d
+pnpm demo:health
 ```
 
 ## Local URLs
 
-| Service       | URL                           |
-| ------------- | ----------------------------- |
-| Dashboard     | http://localhost:3000         |
-| API           | http://localhost:8080         |
-| API health    | http://localhost:8080/health  |
-| API readiness | http://localhost:8080/ready   |
-| API version   | http://localhost:8080/version |
-| API docs      | http://localhost:8080/docs    |
-| API metrics   | http://localhost:8080/metrics |
-| Prometheus    | http://localhost:9090         |
-| Grafana       | http://localhost:3001         |
-| Loki          | http://localhost:3100         |
-| Promtail      | http://localhost:9080         |
+| Service       | URL                               |
+| ------------- | --------------------------------- |
+| Dashboard     | http://localhost:3000             |
+| API health    | http://localhost:3000/api/health  |
+| API readiness | http://localhost:3000/api/ready   |
+| API version   | http://localhost:3000/api/version |
+| API docs      | http://localhost:3000/api/docs    |
+| API metrics   | http://localhost:3000/api/metrics |
+| Prometheus    | http://localhost:9090             |
+| Grafana       | http://localhost:3001             |
+| Loki          | http://localhost:3100             |
+| Alloy         | http://localhost:12345            |
 
 ## Development Scripts
 
@@ -113,7 +113,7 @@ Run individual checks during development:
 ```bash
 pnpm lint
 pnpm typecheck
-pnpm test
+pnpm test:coverage
 pnpm docs:links
 pnpm build
 ```
@@ -138,10 +138,11 @@ For a stronger local validation path:
 ```bash
 pnpm run ci
 docker compose config --quiet
-docker compose up --build -d
+export COMPOSE_FILE=docker-compose.yml:docker-compose.demo.yml
+docker compose --profile observability up --build -d
 ./scripts/healthcheck.sh
 pnpm k6:docker:smoke
-docker compose down
+docker compose --profile observability down
 ```
 
 ## Troubleshooting
@@ -151,6 +152,6 @@ docker compose down
 | Port already in use        | Stop old containers with `docker compose down --remove-orphans`.       |
 | API is not reachable       | Check `docker compose logs -f api` and run `./scripts/healthcheck.sh`. |
 | Dashboard cannot reach API | Confirm Nginx is running and the web app uses relative `/api` paths.   |
-| Metrics are missing        | Open http://localhost:8080/metrics and check Prometheus targets.       |
+| Metrics are missing        | Open http://localhost:3000/api/metrics and check Prometheus targets.      |
 | Grafana has no data        | Confirm Prometheus and Loki containers are healthy.                    |
-| Logs are missing in Loki   | Check Promtail logs with `docker compose logs -f promtail`.            |
+| Logs are missing in Loki   | Check Alloy logs with `docker compose logs -f alloy`.                    |

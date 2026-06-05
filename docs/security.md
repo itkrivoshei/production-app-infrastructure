@@ -12,7 +12,7 @@ The goal is to catch high-impact issues before merge: vulnerable dependencies, l
 | Image scan        | Trivy      | Scans final API and web container images for vulnerable packages.       |
 | Dockerfile lint   | Hadolint   | Checks Dockerfiles for maintainability and security issues.             |
 | Shell script lint | ShellCheck | Checks Bash scripts for unsafe patterns and common errors.              |
-| Static analysis   | CodeQL     | Runs GitHub semantic code analysis in a separate workflow.              |
+| Static analysis   | CodeQL     | Analyzes GitHub Actions and JavaScript/TypeScript.                       |
 
 ## CI Scope
 
@@ -111,6 +111,10 @@ CodeQL runs in a separate GitHub Actions workflow:
 ```
 
 It provides semantic code analysis for supported languages and reports findings in GitHub Security / Code scanning.
+
+Runtime hardening also keeps only the Nginx edge public, uses same-origin API
+requests, disables demo routes in safe mode, and applies read-only filesystems,
+dropped capabilities, and `no-new-privileges` to application containers.
 
 ## Pull Request Expectations
 
