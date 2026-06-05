@@ -1,0 +1,4 @@
+services:
+  api:
+    environment:
+      APP_MODE: demo

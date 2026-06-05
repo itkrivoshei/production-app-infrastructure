@@ -1,0 +1,43 @@
+groups:
+  - name: devops-control-center
+    rules:
+      - alert: ApiTargetDown
+        expr: up{job="devops-control-center-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: DevOps Control Center API target is down
+
+      - alert: ApiHighErrorRate
+        expr: |
+          (
+            sum(rate(http_requests_total{status_code=~"5.."}[5m]))
+            /
+            clamp_min(sum(rate(http_requests_total[5m])), 0.001)
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: API HTTP 5xx rate is above 5 percent
+
+      - alert: ApiHighP95Latency
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (le)
+          ) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: API p95 latency is above one second
+
+      - alert: ApiEventLoopLag
+        expr: node_nodejs_eventloop_lag_p99_seconds > 0.25
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: API event loop p99 lag is above 250 milliseconds

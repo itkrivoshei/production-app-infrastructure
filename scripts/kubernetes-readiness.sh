@@ -199,7 +199,8 @@ main() {
   check_file ops/prometheus/prometheus.yml
   check_file ops/grafana/dashboards/devops-control-center.json
   check_file ops/loki/loki-config.yml
-  check_file ops/promtail/promtail-config.yml
+  check_file ops/alloy/config.alloy
+  check_file ops/prometheus/rules/devops-control-center.yml
   check_file .github/workflows/ci.yml
   check_file .github/workflows/docker.yml
   check_file .github/workflows/security.yml
@@ -211,10 +212,11 @@ main() {
 
   if [[ "$START_STACK" == "true" ]]; then
     info "Starting local stack for readiness checks"
-    docker compose up --build -d
+    COMPOSE_FILE=docker-compose.yml:docker-compose.demo.yml \
+      docker compose --profile observability up --build -d
   fi
 
-  ./scripts/healthcheck.sh
+  FULL_STACK=true ./scripts/healthcheck.sh
 
   check_http_contains "Frontend" "http://localhost:${NGINX_PORT}" "<!doctype html>"
   check_http_contains "API health" "http://localhost:${NGINX_PORT}/api/health" '"status":"ok"'

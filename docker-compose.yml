@@ -6,31 +6,44 @@ x-logging: &default-logging
     max-size: "10m"
     max-file: "3"
 
+x-app-security: &app-security
+  init: true
+  read_only: true
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  tmpfs:
+    - /tmp
+
 services:
   api:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
     image: devops-control-center-api:local
-    container_name: devops-control-center-api
     environment:
       APP_NAME: devops-control-center-api
       APP_ENV: ${APP_ENV:-local}
+      APP_MODE: ${APP_MODE:-safe}
       APP_VERSION: ${APP_VERSION:-1.0.0}
       COMMIT_SHA: ${COMMIT_SHA:-local}
       PORT: 8080
       LOG_LEVEL: ${LOG_LEVEL:-info}
       LOG_FORMAT: ${LOG_FORMAT:-json}
-      ENABLE_DEMO_LOAD: ${ENABLE_DEMO_LOAD:-true}
-      ENABLE_DEMO_ERRORS: ${ENABLE_DEMO_ERRORS:-true}
-    ports:
-      - "${API_PORT:-8080}:8080"
+      DEMO_RATE_LIMIT: ${DEMO_RATE_LIMIT:-10}
     expose:
       - "8080"
     networks:
       - app-network
     restart: unless-stopped
     logging: *default-logging
+    <<: *app-security
+    deploy:
+      resources:
+        limits:
+          cpus: "1.00"
+          memory: 512M
     healthcheck:
       test:
         [
@@ -55,7 +68,6 @@ services:
         VITE_LOKI_URL: ${VITE_LOKI_URL:-http://localhost:3100}
         VITE_API_DOCS_URL: /api/docs
     image: devops-control-center-web:local
-    container_name: devops-control-center-web
     expose:
       - "8080"
     networks:
@@ -65,6 +77,16 @@ services:
     depends_on:
       api:
         condition: service_healthy
+    <<: *app-security
+    tmpfs:
+      - /tmp
+      - /var/cache/nginx
+      - /var/run
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 128M
     healthcheck:
       test:
         ["CMD-SHELL", "wget -q --spider http://127.0.0.1:8080/health || exit 1"]
@@ -74,10 +96,9 @@ services:
       retries: 3
 
   nginx:
-    image: nginx:1.29-alpine3.23
-    container_name: devops-control-center-nginx
+    image: nginxinc/nginx-unprivileged:1.29-alpine3.23
     ports:
-      - "${NGINX_PORT:-3000}:80"
+      - "${NGINX_BIND_ADDRESS:-0.0.0.0}:${NGINX_PORT:-3000}:8080"
     volumes:
       - ./ops/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     networks:
@@ -89,11 +110,21 @@ services:
         condition: service_healthy
       web:
         condition: service_healthy
+    <<: *app-security
+    tmpfs:
+      - /tmp
+      - /var/cache/nginx
+      - /var/run
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 128M
     healthcheck:
       test:
         [
           "CMD-SHELL",
-          "wget -q --spider http://127.0.0.1/nginx-health || exit 1",
+          "wget -q --spider http://127.0.0.1:8080/nginx-health || exit 1",
         ]
       interval: 30s
       timeout: 5s
@@ -102,21 +133,23 @@ services:
 
   prometheus:
     image: prom/prometheus:v2.55.1
-    container_name: devops-control-center-prometheus
+    profiles: [observability]
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--storage.tsdb.path=/prometheus"
-      - "--web.console.libraries=/usr/share/prometheus/console_libraries"
-      - "--web.console.templates=/usr/share/prometheus/consoles"
+      - "--storage.tsdb.retention.time=7d"
     ports:
-      - "${PROMETHEUS_PORT:-9090}:9090"
+      - "127.0.0.1:${PROMETHEUS_PORT:-9090}:9090"
     volumes:
       - ./ops/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./ops/prometheus/rules:/etc/prometheus/rules:ro
       - prometheus-data:/prometheus
     networks:
       - app-network
     restart: unless-stopped
     logging: *default-logging
+    security_opt:
+      - no-new-privileges:true
     depends_on:
       api:
         condition: service_healthy
@@ -133,15 +166,14 @@ services:
 
   grafana:
     image: grafana/grafana:11.6.0
-    container_name: devops-control-center-grafana
+    profiles: [observability]
     ports:
-      - "${GRAFANA_PORT:-3001}:3000"
+      - "127.0.0.1:${GRAFANA_PORT:-3001}:3000"
     environment:
-      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
-      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
-      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
       GF_AUTH_ANONYMOUS_ENABLED: "true"
       GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_USERS_ALLOW_SIGN_UP: "false"
       GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/devops-control-center.json
     volumes:
       - grafana-data:/var/lib/grafana
@@ -152,6 +184,8 @@ services:
       - app-network
     restart: unless-stopped
     logging: *default-logging
+    security_opt:
+      - no-new-privileges:true
     depends_on:
       prometheus:
         condition: service_healthy
@@ -170,11 +204,11 @@ services:
 
   loki:
     image: grafana/loki:3.5.7
-    container_name: devops-control-center-loki
+    profiles: [observability]
     command:
       - "-config.file=/etc/loki/loki-config.yml"
     ports:
-      - "${LOKI_PORT:-3100}:3100"
+      - "127.0.0.1:${LOKI_PORT:-3100}:3100"
     volumes:
       - ./ops/loki/loki-config.yml:/etc/loki/loki-config.yml:ro
       - loki-data:/loki
@@ -182,6 +216,8 @@ services:
       - app-network
     restart: unless-stopped
     logging: *default-logging
+    security_opt:
+      - no-new-privileges:true
     healthcheck:
       test:
         ["CMD-SHELL", "wget -q --spider http://127.0.0.1:3100/ready || exit 1"]
@@ -190,50 +226,44 @@ services:
       start_period: 20s
       retries: 5
 
-  promtail:
-    image: grafana/promtail:3.5.7
-    container_name: devops-control-center-promtail
+  alloy:
+    image: grafana/alloy:v1.11.3
+    profiles: [observability]
     command:
-      - "-config.file=/etc/promtail/promtail-config.yml"
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/config.alloy
     ports:
-      - "${PROMTAIL_PORT:-9080}:9080"
+      - "127.0.0.1:${ALLOY_PORT:-12345}:12345"
     volumes:
-      - ./ops/promtail/promtail-config.yml:/etc/promtail/promtail-config.yml:ro
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - ./ops/alloy/config.alloy:/etc/alloy/config.alloy:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - promtail-positions:/tmp
+      - alloy-data:/var/lib/alloy
     networks:
       - app-network
     restart: unless-stopped
     logging: *default-logging
+    security_opt:
+      - no-new-privileges:true
     depends_on:
       loki:
         condition: service_healthy
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "bash -ec 'exec 3<>/dev/tcp/127.0.0.1/9080; printf \"GET /ready HTTP/1.1\\r\\nHost: 127.0.0.1\\r\\nConnection: close\\r\\n\\r\\n\" >&3; grep -q \"200 OK\" <&3'",
-        ]
-      interval: 30s
-      timeout: 5s
-      start_period: 20s
-      retries: 5
 
   k6:
     image: grafana/k6:1.7.1
-    container_name: devops-control-center-k6
-    profiles:
-      - tools
+    profiles: [tools]
     entrypoint:
       - k6
     environment:
-      TARGET_BASE_URL: http://nginx
+      TARGET_BASE_URL: http://nginx:8080
     volumes:
       - ./load:/scripts:ro
     networks:
       - app-network
     logging: *default-logging
+    security_opt:
+      - no-new-privileges:true
     depends_on:
       nginx:
         condition: service_healthy
@@ -246,4 +276,4 @@ volumes:
   prometheus-data:
   grafana-data:
   loki-data:
-  promtail-positions:
+  alloy-data:
