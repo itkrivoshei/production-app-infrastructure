@@ -91,13 +91,23 @@ variable "allowed_ssh_cidr_blocks" {
 }
 
 variable "api_image" {
-  description = "Container image reference intended for the API service."
+  description = "Digest-pinned container image reference for the API service."
   type        = string
-  default     = "ghcr.io/itkrivoshei/devops-control-center-api:latest"
+  default     = null
+
+  validation {
+    condition     = var.api_image == null || can(regex("^ghcr\\.io/.+@sha256:[a-f0-9]{64}$", var.api_image))
+    error_message = "api_image must be null or a ghcr.io reference pinned by sha256 digest."
+  }
 }
 
 variable "web_image" {
-  description = "Container image reference intended for the web service."
+  description = "Digest-pinned container image reference for the web service."
   type        = string
-  default     = "ghcr.io/itkrivoshei/devops-control-center-web:latest"
+  default     = null
+
+  validation {
+    condition     = var.web_image == null || can(regex("^ghcr\\.io/.+@sha256:[a-f0-9]{64}$", var.web_image))
+    error_message = "web_image must be null or a ghcr.io reference pinned by sha256 digest."
+  }
 }

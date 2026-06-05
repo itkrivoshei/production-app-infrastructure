@@ -14,5 +14,6 @@ key_name        = null
 allowed_http_cidr_blocks = ["0.0.0.0/0"]
 allowed_ssh_cidr_blocks  = []
 
-api_image = "ghcr.io/itkrivoshei/devops-control-center-api:latest"
-web_image = "ghcr.io/itkrivoshei/devops-control-center-web:latest"
+# Required only when enable_ec2_demo is true. Resolve published image digests first.
+api_image = null
+web_image = null

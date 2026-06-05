@@ -157,14 +157,6 @@ resource "aws_security_group" "app" {
     cidr_blocks = var.allowed_http_cidr_blocks
   }
 
-  ingress {
-    description = "Local demo edge port"
-    from_port   = 8088
-    to_port     = 8088
-    protocol    = "tcp"
-    cidr_blocks = var.allowed_http_cidr_blocks
-  }
-
   dynamic "ingress" {
     for_each = toset(var.allowed_ssh_cidr_blocks)
 
@@ -216,6 +208,44 @@ data "aws_ami" "amazon_linux_2023" {
   }
 }
 
+data "aws_iam_policy_document" "ec2_assume_role" {
+  count = var.enable_ec2_demo ? 1 : 0
+
+  statement {
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["ec2.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_role" "ec2_ssm" {
+  count = var.enable_ec2_demo ? 1 : 0
+
+  name_prefix        = "${local.name_prefix}-ec2-"
+  assume_role_policy = data.aws_iam_policy_document.ec2_assume_role[0].json
+
+  tags = {
+    Name = "${local.name_prefix}-ec2-ssm"
+  }
+}
+
+resource "aws_iam_role_policy_attachment" "ec2_ssm" {
+  count = var.enable_ec2_demo ? 1 : 0
+
+  role       = aws_iam_role.ec2_ssm[0].name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
+resource "aws_iam_instance_profile" "ec2_ssm" {
+  count = var.enable_ec2_demo ? 1 : 0
+
+  name_prefix = "${local.name_prefix}-ec2-"
+  role        = aws_iam_role.ec2_ssm[0].name
+}
+
 resource "aws_instance" "app" {
   count = var.enable_ec2_demo ? 1 : 0
 
@@ -224,11 +254,12 @@ resource "aws_instance" "app" {
   subnet_id                   = aws_subnet.public[0].id
   vpc_security_group_ids      = [aws_security_group.app[0].id]
   associate_public_ip_address = true
+  iam_instance_profile        = aws_iam_instance_profile.ec2_ssm[0].name
   key_name                    = var.key_name
   user_data_replace_on_change = true
   user_data = templatefile("${path.module}/templates/user-data.sh.tftpl", {
-    api_image = var.api_image
-    web_image = var.web_image
+    api_image = coalesce(var.api_image, "")
+    web_image = coalesce(var.web_image, "")
   })
 
   metadata_options {
@@ -244,5 +275,12 @@ resource "aws_instance" "app" {
 
   tags = {
     Name = "${local.name_prefix}-app"
+  }
+
+  lifecycle {
+    precondition {
+      condition     = var.api_image != null && var.web_image != null
+      error_message = "api_image and web_image must be digest-pinned references when enable_ec2_demo is true."
+    }
   }
 }
