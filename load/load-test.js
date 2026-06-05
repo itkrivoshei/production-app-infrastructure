@@ -22,6 +22,7 @@ export const options = {
 const jsonHeaders = {
   headers: {
     "Content-Type": "application/json",
+    "X-Demo-Action": "true",
   },
 };
 
@@ -84,7 +85,11 @@ export default function () {
     }
 
     if (actionRoll >= 85) {
-      const errorResponse = http.post(`${BASE_URL}/api/load/errors`);
+      const errorResponse = http.post(
+        `${BASE_URL}/api/load/errors`,
+        null,
+        jsonHeaders,
+      );
 
       check(errorResponse, {
         "generated intentional error": (res) => res.status === 500,

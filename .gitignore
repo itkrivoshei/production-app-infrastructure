@@ -145,6 +145,8 @@ vite.config.ts.timestamp-*
 # Project build outputs
 apps/*/dist/
 apps/*/build/
+playwright-report/
+test-results/
 
 # Docker local overrides
 .docker/

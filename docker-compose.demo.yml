@@ -2,3 +2,4 @@ services:
   api:
     environment:
       APP_MODE: demo
+      DEMO_RATE_LIMIT: 1000

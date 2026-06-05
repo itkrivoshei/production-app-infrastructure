@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -51,12 +54,20 @@ jobs:
           VITE_LOKI_URL: https://github.com/itkrivoshei/production-app-infrastructure/blob/main/docs/logging.md
           VITE_REPOSITORY_URL: https://github.com/itkrivoshei/production-app-infrastructure
 
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run static Pages browser E2E
+        run: E2E_MODE=pages pnpm exec playwright test
+
       - name: Configure GitHub Pages
+        if: github.event_name != 'pull_request'
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
         with:
           enablement: true
 
       - name: Upload Pages artifact
+        if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: apps/web/dist
@@ -64,6 +75,7 @@ jobs:
   deploy:
     name: Deploy static UI preview
     needs: build
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment:
