@@ -15,10 +15,27 @@ export async function readyRoutes(app: FastifyInstance): Promise<void> {
             }),
             timestamp: Type.String(),
           }),
+          503: Type.Object({
+            status: Type.String(),
+            checks: Type.Object({
+              api: Type.String(),
+            }),
+            timestamp: Type.String(),
+          }),
         },
       },
     },
-    async () => {
+    async (_request, reply) => {
+      if (app.runtimeState.shuttingDown) {
+        return reply.code(503).send({
+          status: "not_ready",
+          checks: {
+            api: "shutting_down",
+          },
+          timestamp: new Date().toISOString(),
+        });
+      }
+
       return {
         status: "ready",
         checks: {

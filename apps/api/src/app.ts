@@ -1,17 +1,18 @@
-import cors from "@fastify/cors";
 import Fastify from "fastify";
-import { config } from "./config.js";
+import { config as defaultConfig, type AppConfig } from "./config.js";
 import { registerMetrics } from "./plugins/metrics.js";
 import { registerSwagger } from "./plugins/swagger.js";
+import { createDemoGuard } from "./plugins/demo-guard.js";
 import { healthRoutes } from "./routes/health.js";
 import { loadRoutes } from "./routes/load.js";
 import { logsRoutes } from "./routes/logs.js";
 import { metricsRoutes } from "./routes/metrics.js";
+import { overviewRoutes } from "./routes/overview.js";
 import { readyRoutes } from "./routes/ready.js";
 import { statusRoutes } from "./routes/status.js";
 import { versionRoutes } from "./routes/version.js";
 
-export async function buildApp() {
+export async function buildApp(config: AppConfig = defaultConfig) {
   const logger =
     config.logFormat === "pretty"
       ? {
@@ -44,8 +45,8 @@ export async function buildApp() {
     logger,
   });
 
-  await app.register(cors, {
-    origin: true,
+  app.decorate("runtimeState", {
+    shuttingDown: false,
   });
 
   registerMetrics(app, config);
@@ -54,10 +55,15 @@ export async function buildApp() {
   await healthRoutes(app);
   await readyRoutes(app);
   await statusRoutes(app, config);
+  await overviewRoutes(app, config);
   await metricsRoutes(app);
-  await logsRoutes(app);
   await versionRoutes(app, config);
-  await loadRoutes(app, config);
+
+  if (config.appMode === "demo") {
+    const demoGuard = createDemoGuard(config.demoRateLimit);
+    await logsRoutes(app, config, demoGuard);
+    await loadRoutes(app, config, demoGuard);
+  }
 
   return app;
 }
