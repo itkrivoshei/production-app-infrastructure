@@ -258,8 +258,10 @@ resource "aws_instance" "app" {
   key_name                    = var.key_name
   user_data_replace_on_change = true
   user_data = templatefile("${path.module}/templates/user-data.sh.tftpl", {
-    api_image = coalesce(var.api_image, "")
-    web_image = coalesce(var.web_image, "")
+    api_image   = coalesce(var.api_image, "")
+    web_image   = coalesce(var.web_image, "")
+    app_version = coalesce(var.app_version, "")
+    commit_sha  = coalesce(var.commit_sha, "")
   })
 
   metadata_options {
@@ -279,8 +281,8 @@ resource "aws_instance" "app" {
 
   lifecycle {
     precondition {
-      condition     = var.api_image != null && var.web_image != null
-      error_message = "api_image and web_image must be digest-pinned references when enable_ec2_demo is true."
+      condition     = var.api_image != null && var.web_image != null && var.app_version != null && var.commit_sha != null
+      error_message = "api_image, web_image, app_version, and commit_sha must be set when enable_ec2_demo is true."
     }
   }
 }
