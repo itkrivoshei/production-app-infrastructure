@@ -8,11 +8,27 @@ import { LoadTest } from "./LoadTest";
 
 vi.mock("@/lib/api", () => ({
   api: {
+    overview: vi.fn(),
     generateCpuLoad: vi.fn(),
     generateErrors: vi.fn(),
     generateLog: vi.fn(),
   },
 }));
+
+const overviewResponse = {
+  health: "ok" as const,
+  readiness: "ready" as const,
+  service: "devops-control-center-api",
+  version: "1.2.3",
+  commit: "abc1234",
+  environment: "test",
+  mode: "demo" as const,
+  uptime: 125,
+  requests: 100,
+  http5xx: 2,
+  errorRate: 2,
+  timestamp: "2026-06-05T00:00:00.000Z",
+};
 
 afterEach(() => {
   queryClient.clear();
@@ -22,6 +38,7 @@ afterEach(() => {
 describe("LoadTest", () => {
   it("runs demo actions and displays their outcomes", async () => {
     const user = userEvent.setup();
+    vi.mocked(api.overview).mockResolvedValue(overviewResponse);
     vi.mocked(api.generateCpuLoad).mockResolvedValue({
       status: "ok",
       type: "cpu",
@@ -42,7 +59,9 @@ describe("LoadTest", () => {
       </QueryClientProvider>,
     );
 
-    await user.click(screen.getByRole("button", { name: /Generate CPU Load/i }));
+    await user.click(
+      await screen.findByRole("button", { name: /Generate CPU Load/i }),
+    );
     await screen.findAllByText("CPU load action completed");
 
     await user.click(screen.getByRole("button", { name: /Generate Logs/i }));
@@ -57,6 +76,7 @@ describe("LoadTest", () => {
 
   it("shows demo action failures to the user", async () => {
     const user = userEvent.setup();
+    vi.mocked(api.overview).mockResolvedValue(overviewResponse);
     vi.mocked(api.generateErrors).mockRejectedValue(new Error("Demo disabled"));
 
     render(
@@ -65,9 +85,31 @@ describe("LoadTest", () => {
       </QueryClientProvider>,
     );
 
-    await user.click(screen.getByRole("button", { name: /Generate Errors/i }));
+    await user.click(
+      await screen.findByRole("button", { name: /Generate Errors/i }),
+    );
 
     await screen.findAllByText("Controlled error action failed");
     expect(screen.getAllByText("Demo disabled")).not.toHaveLength(0);
+  });
+
+  it("does not expose demo actions in safe mode", async () => {
+    vi.mocked(api.overview).mockResolvedValue({
+      ...overviewResponse,
+      mode: "safe",
+    });
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <LoadTest />
+      </QueryClientProvider>,
+    );
+
+    expect(
+      await screen.findByText(/Demo actions are disabled in safe mode/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Generate CPU Load/i }),
+    ).not.toBeInTheDocument();
   });
 });

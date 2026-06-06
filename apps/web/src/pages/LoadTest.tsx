@@ -3,14 +3,17 @@ import { Activity, AlertTriangle, FileText } from "lucide-react";
 import { ActionButton } from "@/components/dashboard/ActionButton";
 import { ActivityConsole } from "@/components/dashboard/ActivityConsole";
 import { MetricCard } from "@/components/dashboard/MetricCard";
+import { RequestError } from "@/components/dashboard/RequestError";
 import { SectionHeader } from "@/components/dashboard/SectionHeader";
 import { useActivityLog } from "@/lib/activity";
 import { api } from "@/lib/api";
 import { config } from "@/lib/config";
 import { queryClient } from "@/lib/queryClient";
+import { useRuntimeOverview } from "@/lib/useRuntimeOverview";
 
 export function LoadTest() {
   const { activityEntries, addActivity } = useActivityLog();
+  const { overview, demoActionsAvailable } = useRuntimeOverview();
 
   const cpuLoad = useMutation({
     mutationFn: () => api.generateCpuLoad(1000),
@@ -100,29 +103,48 @@ export function LoadTest() {
         <MetricCard title="Error Action" value={demoError.status} />
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <ActionButton
-          label="Generate CPU Load"
-          description="POST /load/cpu"
-          icon={Activity}
-          loading={cpuLoad.isPending}
-          onClick={() => cpuLoad.mutate()}
+      {overview.isError ? (
+        <RequestError
+          title="Runtime mode unavailable"
+          error={overview.error}
+          onRetry={() => void overview.refetch()}
         />
-        <ActionButton
-          label="Generate Errors"
-          description="POST /load/errors"
-          icon={AlertTriangle}
-          loading={demoError.isPending}
-          onClick={() => demoError.mutate()}
-        />
-        <ActionButton
-          label="Generate Logs"
-          description="POST /logs/generate"
-          icon={FileText}
-          loading={demoLog.isPending}
-          onClick={() => demoLog.mutate()}
-        />
-      </div>
+      ) : null}
+
+      {demoActionsAvailable ? (
+        <div className="grid gap-4 md:grid-cols-3">
+          <ActionButton
+            label="Generate CPU Load"
+            description="POST /load/cpu"
+            icon={Activity}
+            loading={cpuLoad.isPending}
+            onClick={() => cpuLoad.mutate()}
+          />
+          <ActionButton
+            label="Generate Errors"
+            description="POST /load/errors"
+            icon={AlertTriangle}
+            loading={demoError.isPending}
+            onClick={() => demoError.mutate()}
+          />
+          <ActionButton
+            label="Generate Logs"
+            description="POST /logs/generate"
+            icon={FileText}
+            loading={demoLog.isPending}
+            onClick={() => demoLog.mutate()}
+          />
+        </div>
+      ) : overview.isSuccess ? (
+        <div className="rounded-lg border border-slate-700 bg-slate-900 p-4 text-sm text-slate-300">
+          Demo actions are disabled in safe mode. Start the local demo profile
+          to generate controlled load, errors, and logs.
+        </div>
+      ) : (
+        <div className="rounded-lg border border-slate-800 bg-slate-900 p-4 text-sm text-slate-400">
+          Checking whether demo actions are available...
+        </div>
+      )}
 
       <ActivityConsole entries={activityEntries} className="mt-6" />
     </div>

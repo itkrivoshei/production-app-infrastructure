@@ -36,7 +36,11 @@ describe("ServiceAccessButton", () => {
       ),
     ).toBeInTheDocument();
     expect(screen.getByText("http://localhost:3001")).toBeInTheDocument();
-    expect(screen.getByText("docker compose up --build -d")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "COMPOSE_FILE=docker-compose.yml:docker-compose.demo.yml docker compose --profile observability up --build -d",
+      ),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: /open local demo guide/i }),
     ).toHaveAttribute(

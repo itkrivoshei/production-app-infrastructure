@@ -196,7 +196,7 @@ export function Overview() {
               serviceName="OpenAPI Docs"
               description="Swagger UI served by the Fastify API in the local Docker Compose stack."
               url={config.apiDocsUrl}
-              localUrl="http://localhost:8080/docs"
+              localUrl={config.localUrls.apiDocs}
               icon={BookOpen}
               docsPath="docs/local-development.md"
             />
@@ -205,7 +205,7 @@ export function Overview() {
               serviceName="Grafana"
               description="Provisioned dashboards for metrics and logs in the local observability stack."
               url={config.grafanaUrl}
-              localUrl="http://localhost:3001"
+              localUrl={config.localUrls.grafana}
               icon={BarChart3}
               docsPath="docs/monitoring.md"
             />
@@ -214,7 +214,7 @@ export function Overview() {
               serviceName="Prometheus"
               description="Metrics target and Prometheus query UI for the local stack."
               url={config.prometheusUrl}
-              localUrl="http://localhost:9090"
+              localUrl={config.localUrls.prometheus}
               icon={Gauge}
               docsPath="docs/monitoring.md"
             />
@@ -223,7 +223,7 @@ export function Overview() {
               serviceName="Loki"
               description="Log storage queried directly or through Grafana Explore in the local stack."
               url={config.lokiUrl}
-              localUrl="http://localhost:3100"
+              localUrl={config.localUrls.loki}
               icon={ScrollText}
               docsPath="docs/logging.md"
             />

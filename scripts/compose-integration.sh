@@ -78,6 +78,12 @@ main() {
     assert_status 404 POST "/api/${route}" -H "X-Demo-Action: true"
   done
 
+  if [[ "${RUN_BROWSER_E2E:-false}" == "true" ]]; then
+    require_command pnpm
+    info "Running browser E2E against safe local Compose"
+    E2E_BASE_URL="$BASE_URL" E2E_RUNTIME_MODE=safe pnpm e2e:compose
+  fi
+
   info "Switching isolated stack to demo mode"
   compose_demo up -d --force-recreate api nginx
   wait_for_edge
@@ -94,8 +100,8 @@ main() {
 
   if [[ "${RUN_BROWSER_E2E:-false}" == "true" ]]; then
     require_command pnpm
-    info "Running browser E2E against local Compose"
-    E2E_BASE_URL="$BASE_URL" pnpm e2e:compose
+    info "Running browser E2E against demo local Compose"
+    E2E_BASE_URL="$BASE_URL" E2E_RUNTIME_MODE=demo pnpm e2e:compose
   fi
 
   success "Safe/demo Compose integration, k6 smoke, and requested E2E checks passed."

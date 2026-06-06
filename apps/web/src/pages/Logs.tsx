@@ -5,6 +5,7 @@ import { SectionHeader } from "@/components/dashboard/SectionHeader";
 import { RequestError } from "@/components/dashboard/RequestError";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
+import { useRuntimeOverview } from "@/lib/useRuntimeOverview";
 
 type LogEntry = {
   level: string;
@@ -14,6 +15,7 @@ type LogEntry = {
 
 export function Logs() {
   const [entries, setEntries] = useState<LogEntry[]>([]);
+  const { overview, demoActionsAvailable } = useRuntimeOverview();
 
   const generateLog = useMutation({
     mutationFn: () =>
@@ -28,7 +30,7 @@ export function Logs() {
       <SectionHeader
         title="Logs"
         description="Structured backend log generation for the observability pipeline."
-        action={
+        action={demoActionsAvailable ? (
           <Button
             onClick={() => generateLog.mutate()}
             disabled={generateLog.isPending}
@@ -38,8 +40,23 @@ export function Logs() {
               {generateLog.isPending ? "Generating" : "Generate Demo Log"}
             </span>
           </Button>
-        }
+        ) : undefined}
       />
+
+      {overview.isError ? (
+        <RequestError
+          title="Runtime mode unavailable"
+          error={overview.error}
+          onRetry={() => void overview.refetch()}
+        />
+      ) : null}
+
+      {overview.isSuccess && !demoActionsAvailable ? (
+        <div className="mb-4 rounded-lg border border-slate-700 bg-slate-900 p-4 text-sm text-slate-300">
+          Demo log generation is disabled in safe mode. Start the local demo
+          profile to emit controlled logs.
+        </div>
+      ) : null}
 
       {generateLog.isError ? (
         <RequestError

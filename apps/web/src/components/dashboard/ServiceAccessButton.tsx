@@ -31,7 +31,7 @@ export function ServiceAccessButton({
   url,
   localUrl,
   icon: Icon,
-  command = "docker compose up --build -d",
+  command = "COMPOSE_FILE=docker-compose.yml:docker-compose.demo.yml docker compose --profile observability up --build -d",
   docsPath = "docs/demo.md",
   variant = "outline",
 }: ServiceAccessButtonProps) {
