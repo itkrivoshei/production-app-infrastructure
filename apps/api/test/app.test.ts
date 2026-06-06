@@ -219,6 +219,7 @@ describe("configuration validation", () => {
     [{ APP_MODE: "public" }, "APP_MODE"],
     [{ PORT: "0" }, "PORT"],
     [{ LOG_FORMAT: "text" }, "LOG_FORMAT"],
+    [{ LOG_LEVEL: "verbose" }, "LOG_LEVEL"],
     [{ DEMO_RATE_LIMIT: "unlimited" }, "DEMO_RATE_LIMIT"],
   ])("rejects invalid environment values", (environment, expected) => {
     expect(() => createConfig(environment)).toThrow(expected);

@@ -51,4 +51,48 @@ describe("live API client", () => {
       "Demo actions are disabled",
     );
   });
+
+  it("normalizes request timeouts", async () => {
+    const timeout = new Error("The operation timed out");
+    timeout.name = "TimeoutError";
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(timeout));
+
+    await expect(api.health()).rejects.toThrow("Request timed out: /health");
+  });
+
+  it("keeps metrics endpoint failures readable", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(new Response("upstream unavailable", { status: 502 })),
+    );
+
+    await expect(api.metricsText()).rejects.toThrow("upstream unavailable");
+  });
+
+  it("rejects non-JSON controlled error responses with context", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(new Response("<h1>Bad Gateway</h1>", { status: 502 })),
+    );
+
+    await expect(api.generateErrors()).rejects.toThrow(
+      "Invalid JSON response from /load/errors with status 502",
+    );
+  });
+
+  it("rejects malformed controlled error responses", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ status: "error" }), {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        }),
+      ),
+    );
+
+    await expect(api.generateErrors()).rejects.toThrow(
+      "Expected controlled HTTP 500 error response, received 500",
+    );
+  });
 });

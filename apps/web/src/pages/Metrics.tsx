@@ -46,7 +46,7 @@ export function Metrics() {
               serviceName="API metrics endpoint"
               description="The Prometheus-format metrics endpoint is served by the local API."
               url={`${config.apiUrl}/metrics`}
-              localUrl="http://localhost:8080/metrics"
+              localUrl={config.localUrls.apiMetrics}
               icon={BarChart3}
               docsPath="docs/monitoring.md"
             />
@@ -55,7 +55,7 @@ export function Metrics() {
               serviceName="Prometheus"
               description="Metrics target and Prometheus query UI for the local stack."
               url={config.prometheusUrl}
-              localUrl="http://localhost:9090"
+              localUrl={config.localUrls.prometheus}
               icon={Gauge}
               docsPath="docs/monitoring.md"
             />

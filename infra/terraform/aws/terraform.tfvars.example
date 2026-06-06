@@ -17,3 +17,5 @@ allowed_ssh_cidr_blocks  = []
 # Required only when enable_ec2_demo is true. Resolve published image digests first.
 api_image = null
 web_image = null
+app_version = null
+commit_sha  = null

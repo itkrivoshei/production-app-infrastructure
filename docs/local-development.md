@@ -88,7 +88,8 @@ pnpm demo:health
 | `./scripts/restart.sh api`   | Restart the API service.                                       |
 | `./scripts/clean.sh --force` | Remove local containers, volumes, and generated runtime state. |
 | `pnpm docs:links`            | Validate relative Markdown documentation links.                |
-| `pnpm readiness`             | Run Kubernetes readiness checks.                               |
+| `pnpm docs:consistency`      | Validate documented runtime invariants.                        |
+| `pnpm readiness`             | Check an already running full demo stack for Kubernetes reuse. |
 
 ## Common Docker Commands
 
@@ -115,6 +116,7 @@ pnpm lint
 pnpm typecheck
 pnpm test:coverage
 pnpm docs:links
+pnpm docs:consistency
 pnpm build
 ```
 

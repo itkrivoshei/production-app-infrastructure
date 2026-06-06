@@ -21,7 +21,7 @@ The pipeline is designed to keep local development, pull request validation, ima
 | Install            | Dependencies resolve from the lockfile.                                         |
 | Lint / Typecheck   | Source code, TypeScript types, and formatting-sensitive checks pass.            |
 | Tests / coverage   | API and web suites pass the configured coverage thresholds.                     |
-| Docs links         | Relative Markdown links resolve to files in the repository.                     |
+| Docs consistency   | Relative links and documented runtime invariants remain valid.                  |
 | Build              | API and web packages build successfully.                                        |
 | Compose validation | Docker Compose configuration is valid before runtime checks.                    |
 | Integration        | Safe/demo Compose, k6 smoke, and local browser E2E pass.                        |
@@ -40,12 +40,13 @@ docker compose config --quiet
 pnpm observability:validate
 RUN_BROWSER_E2E=true pnpm integration:compose
 pnpm e2e:pages
+./scripts/rollback-demo.sh --dry-run
 ```
 
 Run project handoff checks:
 
 ```bash
-pnpm readiness
+START_STACK=true pnpm readiness
 ```
 
 Run the local runtime smoke path:
@@ -89,7 +90,7 @@ Recommended local pre-merge check:
 pnpm run ci
 docker compose config
 pnpm observability:validate
-pnpm readiness
+START_STACK=true pnpm readiness
 ```
 
 For runtime-sensitive changes, also run:

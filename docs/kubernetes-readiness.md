@@ -6,9 +6,12 @@ The goal is to make sure the current Docker Compose stack, CI/CD workflows, obse
 
 ## Readiness Check
 
-Run from the repository root:
+By default, the command reuses an already running full demo stack. Start it
+first, then run the readiness checks:
 
 ```bash
+export COMPOSE_FILE=docker-compose.yml:docker-compose.demo.yml
+docker compose --profile observability up --build -d
 ./scripts/kubernetes-readiness.sh
 ```
 
@@ -18,19 +21,20 @@ The script validates that the project is ready for Kubernetes-oriented work by c
 - application source does not depend on hardcoded `localhost` references;
 - runtime Dockerfiles use non-root users where practical;
 - Docker Compose configuration is valid;
-- the local stack can start and pass health checks;
+- the running local stack passes health checks;
 - API health, readiness, OpenAPI, metrics, Prometheus, and Loki ingestion work;
 - GHCR image manifests are reachable when published;
 - Terraform validates when initialized.
 
 ## Check Modes
 
-| Mode               | Command                                                               | Purpose                                                    |
-| ------------------ | --------------------------------------------------------------------- | ---------------------------------------------------------- |
-| Default            | `./scripts/kubernetes-readiness.sh`                                   | Runs the standard readiness check.                         |
-| Strict GHCR        | `CHECK_GHCR=true ./scripts/kubernetes-readiness.sh`                   | Requires published GHCR images to be reachable.            |
-| Skip stack startup | `START_STACK=false ./scripts/kubernetes-readiness.sh`                 | Reuses an already running local stack.                     |
-| Combined           | `CHECK_GHCR=true START_STACK=false ./scripts/kubernetes-readiness.sh` | Runs strict image validation without restarting the stack. |
+| Mode            | Command                                                                  | Purpose                                                               |
+| --------------- | ------------------------------------------------------------------------ | --------------------------------------------------------------------- |
+| Default         | `./scripts/kubernetes-readiness.sh`                                      | Reuses an already running full demo stack.                            |
+| One-shot        | `START_STACK=true ./scripts/kubernetes-readiness.sh`                     | Starts the stack when absent and stops only the stack it started.     |
+| Keep stack      | `START_STACK=true KEEP_STACK=true ./scripts/kubernetes-readiness.sh`     | Starts the stack when absent and leaves it running after the checks.  |
+| Strict GHCR     | `CHECK_GHCR=true ./scripts/kubernetes-readiness.sh`                      | Requires published GHCR images while reusing the running local stack. |
+| One-shot strict | `CHECK_GHCR=true START_STACK=true ./scripts/kubernetes-readiness.sh`     | Runs strict image validation with automatic stack cleanup.            |
 
 ## GHCR Validation
 
@@ -75,7 +79,7 @@ The project is ready for Kubernetes when:
 - `pnpm run ci` passes locally and in GitHub Actions;
 - Docker Compose config validates;
 - API and web images build successfully;
-- the local stack starts cleanly;
+- the local stack passes the full health gate;
 - health and readiness checks pass;
 - metrics are available to Prometheus;
 - logs are collected through Alloy and Loki;

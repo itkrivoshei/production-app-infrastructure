@@ -111,3 +111,25 @@ variable "web_image" {
     error_message = "web_image must be null or a ghcr.io reference pinned by sha256 digest."
   }
 }
+
+variable "app_version" {
+  description = "Release version exposed by the API on the optional EC2 demo host."
+  type        = string
+  default     = null
+
+  validation {
+    condition     = var.app_version == null || can(regex("^[0-9A-Za-z][0-9A-Za-z._+-]{0,63}$", var.app_version))
+    error_message = "app_version must be null or a non-empty release identifier up to 64 characters."
+  }
+}
+
+variable "commit_sha" {
+  description = "Git commit SHA exposed by the API on the optional EC2 demo host."
+  type        = string
+  default     = null
+
+  validation {
+    condition     = var.commit_sha == null || can(regex("^[a-f0-9]{7,64}$", var.commit_sha))
+    error_message = "commit_sha must be null or a lowercase hexadecimal Git SHA between 7 and 64 characters."
+  }
+}

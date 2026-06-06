@@ -147,9 +147,11 @@ See the [Demo guide](docs/demo.md) for the step-by-step walkthrough.
 
 ```bash
 pnpm run ci
+pnpm docs:consistency
 pnpm observability:validate
 pnpm e2e:pages
 RUN_BROWSER_E2E=true pnpm integration:compose
+./scripts/rollback-demo.sh --dry-run
 ./scripts/rollback-demo.sh v1.0.0
 ./scripts/rollback-demo.sh --clean
 ```
@@ -177,6 +179,7 @@ cd ../../..
 | `pnpm demo:load`       | Generate demo load                        |
 | `pnpm demo:rollback`   | Run the rollback demo                     |
 | `pnpm docs:links`      | Validate relative Markdown documentation links |
+| `pnpm docs:consistency` | Validate documented runtime invariants          |
 | `pnpm health`          | Run health checks                         |
 | `pnpm readiness`       | Run Kubernetes readiness checks           |
 | `pnpm kubernetes:readiness` | Run Kubernetes readiness checks directly |
@@ -228,17 +231,23 @@ curl -fsS -X POST http://localhost:3000/api/logs/generate \
 
 ## Kubernetes Handoff
 
-Run this before starting Kubernetes work:
+Run this before starting Kubernetes work. The readiness command reuses an
+already running full demo stack:
 
 ```bash
+export COMPOSE_FILE=docker-compose.yml:docker-compose.demo.yml
+docker compose --profile observability up --build -d
 ./scripts/kubernetes-readiness.sh
 ```
 
-For strict GHCR validation after the main-branch Docker workflow publishes images:
+For a one-shot check that starts and then stops the stack automatically:
 
 ```bash
-CHECK_GHCR=true ./scripts/kubernetes-readiness.sh
+START_STACK=true ./scripts/kubernetes-readiness.sh
 ```
+
+Add `CHECK_GHCR=true` after the main-branch Docker workflow publishes images
+to require the expected packages to be reachable.
 
 ## License
 

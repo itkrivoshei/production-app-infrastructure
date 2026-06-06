@@ -1,9 +1,3 @@
-export type MetricsSummary = {
-  requests: number;
-  errors: number;
-  errorRate: number;
-};
-
 export type MetricFamilyCount = {
   name: string;
   count: number;
@@ -25,29 +19,6 @@ function parseSample(line: string) {
   return {
     name: nameAndLabels.split("{")[0],
     value: parsedValue,
-  };
-}
-
-export function sumMetric(metricsText: string | undefined, metricName: string) {
-  return (metricsText ?? "")
-    .split("\n")
-    .filter((line) => line && !line.startsWith("#"))
-    .reduce((total, line) => {
-      const sample = parseSample(line);
-      return sample?.name === metricName ? total + sample.value : total;
-    }, 0);
-}
-
-export function summarizeMetrics(
-  metricsText: string | undefined,
-): MetricsSummary {
-  const requests = sumMetric(metricsText, "http_requests_total");
-  const errors = sumMetric(metricsText, "app_errors_total");
-
-  return {
-    requests,
-    errors,
-    errorRate: requests > 0 ? (errors / requests) * 100 : 0,
   };
 }
 

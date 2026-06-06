@@ -14,4 +14,11 @@ export const config = {
   repositoryUrl:
     import.meta.env.VITE_REPOSITORY_URL ??
     "https://github.com/itkrivoshei/production-app-infrastructure",
+  localUrls: {
+    apiDocs: "http://localhost:3000/api/docs",
+    apiMetrics: "http://localhost:3000/api/metrics",
+    grafana: "http://localhost:3001",
+    prometheus: "http://localhost:9090",
+    loki: "http://localhost:3100",
+  },
 };
