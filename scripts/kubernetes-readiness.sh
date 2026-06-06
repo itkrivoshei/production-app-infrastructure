@@ -5,8 +5,41 @@ set -Eeuo pipefail
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib/common.sh"
 
 CHECK_GHCR="${CHECK_GHCR:-auto}"
-START_STACK="${START_STACK:-true}"
+START_STACK="${START_STACK:-false}"
+KEEP_STACK="${KEEP_STACK:-false}"
 CHECK_TERRAFORM="${CHECK_TERRAFORM:-auto}"
+STACK_STARTED=false
+
+readiness_compose() {
+  COMPOSE_FILE=docker-compose.yml:docker-compose.demo.yml \
+    compose --profile observability "$@"
+}
+
+cleanup_started_stack() {
+  if [[ "$STACK_STARTED" == "true" && "$KEEP_STACK" != "true" ]]; then
+    info "Stopping local stack started by readiness checks"
+    readiness_compose down --remove-orphans >/dev/null 2>&1 || true
+  fi
+}
+
+start_stack_if_requested() {
+  local running_containers
+
+  if [[ "$START_STACK" != "true" ]]; then
+    info "Reusing an already running full demo stack"
+    return 0
+  fi
+
+  running_containers="$(readiness_compose ps -q)"
+  if [[ -n "$running_containers" ]]; then
+    warn "A local demo stack is already running; readiness checks will reuse it"
+    return 0
+  fi
+
+  info "Starting local stack for readiness checks"
+  readiness_compose up --build -d
+  STACK_STARTED=true
+}
 
 check_file() {
   local path="$1"
@@ -187,6 +220,7 @@ main() {
   require_docker
   require_command curl
   require_command rg
+  trap cleanup_started_stack EXIT
 
   info "Running Kubernetes readiness checks..."
 
@@ -211,11 +245,7 @@ main() {
   check_docker_runtime_users
   check_command_output "Docker Compose configuration" docker compose config --quiet
 
-  if [[ "$START_STACK" == "true" ]]; then
-    info "Starting local stack for readiness checks"
-    COMPOSE_FILE=docker-compose.yml:docker-compose.demo.yml \
-      docker compose --profile observability up --build -d
-  fi
+  start_stack_if_requested
 
   FULL_STACK=true ./scripts/healthcheck.sh
 

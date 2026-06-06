@@ -11,11 +11,15 @@ ROLLBACK_BASE_URL="${ROLLBACK_BASE_URL:-http://localhost:${ROLLBACK_PORT}}"
 CURRENT_IMAGE="${CURRENT_IMAGE:-devops-control-center-api:rollback-current}"
 PREVIOUS_IMAGE="${PREVIOUS_IMAGE:-devops-control-center-api:rollback-previous}"
 CURRENT_REF="${CURRENT_REF:-HEAD}"
-PREVIOUS_REF="${PREVIOUS_REF:-origin/main}"
+PREVIOUS_REF="${PREVIOUS_REF:-}"
 CURRENT_VERSION="${CURRENT_VERSION:-1.1.0}"
 PREVIOUS_VERSION="${PREVIOUS_VERSION:-1.0.0}"
 CURRENT_COMMIT="${CURRENT_COMMIT:-}"
 PREVIOUS_COMMIT="${PREVIOUS_COMMIT:-}"
+CURRENT_SOURCE_COMMIT=""
+PREVIOUS_SOURCE_COMMIT=""
+BUILD_ROOT=""
+DRY_RUN=false
 
 usage() {
   cat <<'USAGE'
@@ -28,6 +32,9 @@ Usage:
 
   ./scripts/rollback-demo.sh --clean
       Stop and remove rollback demo containers/network.
+
+  ./scripts/rollback-demo.sh --dry-run
+      Resolve and verify rollback refs without building images.
 USAGE
 }
 
@@ -41,43 +48,66 @@ clean_rollback() {
   success "Rollback demo resources cleaned."
 }
 
-build_demo_images() {
-  local current_commit
-  local previous_commit
-  local build_root
+cleanup_build_root() {
+  if [[ -n "$BUILD_ROOT" && -d "$BUILD_ROOT" ]]; then
+    rm -rf "$BUILD_ROOT"
+  fi
+}
 
-  current_commit="$(git rev-parse "$CURRENT_REF")"
-  previous_commit="$(git rev-parse "$PREVIOUS_REF")"
-  CURRENT_COMMIT="${CURRENT_COMMIT:-$current_commit}"
-  PREVIOUS_COMMIT="${PREVIOUS_COMMIT:-$previous_commit}"
+resolve_refs() {
+  CURRENT_SOURCE_COMMIT="$(git rev-parse --verify "${CURRENT_REF}^{commit}")" ||
+    die "Current rollback ref does not resolve to a commit: ${CURRENT_REF}"
 
-  if [[ "$current_commit" == "$previous_commit" ]]; then
+  if [[ -z "$PREVIOUS_REF" ]]; then
+    if git show-ref --verify --quiet refs/remotes/origin/main &&
+      [[ "$(git rev-parse --verify 'origin/main^{commit}')" != "$CURRENT_SOURCE_COMMIT" ]]; then
+      PREVIOUS_REF="origin/main"
+    elif git rev-parse --verify "${CURRENT_REF}^" >/dev/null 2>&1; then
+      PREVIOUS_REF="${CURRENT_REF}^"
+    else
+      die "Could not select a previous rollback ref; set PREVIOUS_REF explicitly"
+    fi
+  fi
+
+  PREVIOUS_SOURCE_COMMIT="$(git rev-parse --verify "${PREVIOUS_REF}^{commit}")" ||
+    die "Previous rollback ref does not resolve to a commit: ${PREVIOUS_REF}"
+
+  if [[ "$CURRENT_SOURCE_COMMIT" == "$PREVIOUS_SOURCE_COMMIT" ]]; then
     die "Rollback refs must resolve to different commits: ${CURRENT_REF} and ${PREVIOUS_REF}"
   fi
 
-  build_root="$(mktemp -d)"
+  CURRENT_COMMIT="${CURRENT_COMMIT:-$CURRENT_SOURCE_COMMIT}"
+  PREVIOUS_COMMIT="${PREVIOUS_COMMIT:-$PREVIOUS_SOURCE_COMMIT}"
 
-  mkdir -p "$build_root/current" "$build_root/previous"
-  git archive "$CURRENT_REF" | tar -x -C "$build_root/current"
-  git archive "$PREVIOUS_REF" | tar -x -C "$build_root/previous"
+  info "Current rollback ref: ${CURRENT_REF} (${CURRENT_SOURCE_COMMIT})"
+  info "Previous rollback ref: ${PREVIOUS_REF} (${PREVIOUS_SOURCE_COMMIT})"
+}
 
-  info "Building previous API image from ${PREVIOUS_REF} (${previous_commit})"
+build_demo_images() {
+  BUILD_ROOT="$(mktemp -d)"
+
+  mkdir -p "$BUILD_ROOT/current" "$BUILD_ROOT/previous"
+  git archive "$CURRENT_REF" | tar -x -C "$BUILD_ROOT/current"
+  git archive "$PREVIOUS_REF" | tar -x -C "$BUILD_ROOT/previous"
+
+  info "Building previous API image from ${PREVIOUS_REF} (${PREVIOUS_SOURCE_COMMIT})"
   docker build \
-    -f "$build_root/previous/apps/api/Dockerfile" \
+    -f "$BUILD_ROOT/previous/apps/api/Dockerfile" \
     -t "$PREVIOUS_IMAGE" \
-    "$build_root/previous"
+    "$BUILD_ROOT/previous"
 
-  info "Building current API image from ${CURRENT_REF} (${current_commit})"
+  info "Building current API image from ${CURRENT_REF} (${CURRENT_SOURCE_COMMIT})"
   docker build \
-    -f "$build_root/current/apps/api/Dockerfile" \
+    -f "$BUILD_ROOT/current/apps/api/Dockerfile" \
     -t "$CURRENT_IMAGE" \
-    "$build_root/current"
+    "$BUILD_ROOT/current"
 
   if [[ "$(docker image inspect --format '{{.Id}}' "$CURRENT_IMAGE")" == "$(docker image inspect --format '{{.Id}}' "$PREVIOUS_IMAGE")" ]]; then
     die "Rollback images are identical; use refs with different application content"
   fi
 
-  rm -rf "$build_root"
+  cleanup_build_root
+  BUILD_ROOT=""
 }
 
 wait_for_api() {
@@ -137,8 +167,12 @@ deploy_api() {
 parse_args() {
   case "${1:-}" in
     --clean)
+      require_docker
       clean_rollback
       exit 0
+      ;;
+    --dry-run)
+      DRY_RUN=true
       ;;
     -h | --help)
       usage
@@ -164,11 +198,19 @@ parse_args() {
 
 main() {
   cd_project_root
-  require_docker
-  require_command curl
+  trap cleanup_build_root EXIT
 
   parse_args "$@"
+  require_command git
+  resolve_refs
 
+  if [[ "$DRY_RUN" == "true" ]]; then
+    success "Rollback refs are valid and resolve to different commits."
+    return 0
+  fi
+
+  require_docker
+  require_command curl
   clean_rollback
   build_demo_images
 
