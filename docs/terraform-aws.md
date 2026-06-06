@@ -55,20 +55,30 @@ To include it in the plan, set:
 enable_ec2_demo = true
 api_image       = "ghcr.io/owner/devops-control-center-api@sha256:<digest>"
 web_image       = "ghcr.io/owner/devops-control-center-web@sha256:<digest>"
+app_version     = "1.2.3"
+commit_sha      = "0123456789abcdef0123456789abcdef01234567"
 ```
 
 Both application images must be immutable `ghcr.io` references pinned by
-digest. Mutable tags such as `latest` and `sha-*` are rejected. The instance
-starts `APP_MODE=safe`, does not register demo actions, restarts the stack after
-reboot, and serves the dashboard plus `/api/health` on port `80`.
+digest. Mutable tags such as `latest` and `sha-*` are rejected. Release version
+and commit SHA are also required so `/api/version` identifies the deployed
+release. The instance starts `APP_MODE=safe`, does not register demo actions,
+restarts the stack after reboot, and serves the hardened dashboard edge plus
+`/api/health` on port `80`.
 
 After `terraform apply`, validate the deployment:
 
 ```bash
 APP_URL="$(terraform output -raw ec2_app_url)"
 cd ../../..
+EXPECTED_APP_VERSION=1.2.3 \
+EXPECTED_COMMIT_SHA=0123456789abcdef0123456789abcdef01234567 \
 ./scripts/aws-smoke.sh "$APP_URL"
 ```
+
+The smoke check verifies safe mode, unavailable demo endpoints, release
+metadata when expected values are supplied, and important Nginx security
+headers.
 
 Use this only for a controlled demo environment. EC2 and networking resources
 may create AWS costs.

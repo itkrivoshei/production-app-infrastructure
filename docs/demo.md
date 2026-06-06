@@ -125,6 +125,7 @@ Show:
 ## Demo 5: Rollback Simulation
 
 ```bash
+./scripts/rollback-demo.sh --dry-run
 ./scripts/rollback-demo.sh v1.0.0
 ```
 

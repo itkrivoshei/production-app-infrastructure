@@ -236,6 +236,7 @@ docker compose ps
 Run the rollback demo:
 
 ```bash
+./scripts/rollback-demo.sh --dry-run
 ./scripts/rollback-demo.sh v1.0.0
 ```
 
