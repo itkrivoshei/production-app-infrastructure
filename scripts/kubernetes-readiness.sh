@@ -37,8 +37,8 @@ start_stack_if_requested() {
   fi
 
   info "Starting local stack for readiness checks"
-  readiness_compose up --build -d
   STACK_STARTED=true
+  readiness_compose up --build -d
 }
 
 check_file() {
@@ -67,7 +67,7 @@ check_no_hardcoded_localhost_in_source() {
 
   matches="$(
     rg -n "localhost|127\\.0\\.0\\.1" apps/api/src apps/web/src \
-      | rg -v "localUrl=|\\.test\\." || true
+      | rg -v "apps/web/src/lib/config\\.ts|\\.test\\." || true
   )"
 
   if [[ -n "$matches" ]]; then
