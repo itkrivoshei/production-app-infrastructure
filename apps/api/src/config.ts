@@ -2,6 +2,14 @@ import "dotenv/config";
 
 export type AppMode = "safe" | "demo";
 export type LogFormat = "json" | "pretty";
+export type LogLevel =
+  | "fatal"
+  | "error"
+  | "warn"
+  | "info"
+  | "debug"
+  | "trace"
+  | "silent";
 
 export type AppConfig = {
   appName: string;
@@ -10,7 +18,7 @@ export type AppConfig = {
   appMode: AppMode;
   commitSha: string;
   port: number;
-  logLevel: string;
+  logLevel: LogLevel;
   logFormat: LogFormat;
   demoRateLimit: number;
 };
@@ -55,6 +63,25 @@ function readLogFormat(value: string | undefined, appEnv: string): LogFormat {
   return value;
 }
 
+function readLogLevel(value: string | undefined): LogLevel {
+  const level = value ?? "info";
+  const levels: LogLevel[] = [
+    "fatal",
+    "error",
+    "warn",
+    "info",
+    "debug",
+    "trace",
+    "silent",
+  ];
+
+  if (!levels.includes(level as LogLevel)) {
+    throw new Error(`LOG_LEVEL must be one of: ${levels.join(", ")}`);
+  }
+
+  return level as LogLevel;
+}
+
 export function createConfig(
   environment: NodeJS.ProcessEnv = process.env,
 ): AppConfig {
@@ -67,7 +94,7 @@ export function createConfig(
     appMode: readMode(environment.APP_MODE),
     commitSha: environment.COMMIT_SHA ?? "local",
     port: readInteger(environment.PORT, 8080, "PORT", 1, 65_535),
-    logLevel: environment.LOG_LEVEL ?? "info",
+    logLevel: readLogLevel(environment.LOG_LEVEL),
     logFormat: readLogFormat(environment.LOG_FORMAT, appEnv),
     demoRateLimit: readInteger(
       environment.DEMO_RATE_LIMIT,
