@@ -11,10 +11,23 @@ services:
       LOG_LEVEL: ${LOG_LEVEL:-info}
       APP_MODE: safe
     ports:
-      - "${ROLLBACK_PORT:-8091}:8080"
+      - "127.0.0.1:${ROLLBACK_PORT:-8091}:8080"
     networks:
       - rollback-network
     restart: "no"
+    init: true
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    tmpfs:
+      - /tmp
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     healthcheck:
       test:
         [

@@ -4,10 +4,35 @@ set -Eeuo pipefail
 # shellcheck source=scripts/lib/common.sh
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib/common.sh"
 
+FORCE="${1:-}"
+
+usage() {
+  cat <<'USAGE'
+Usage:
+  ./scripts/clean.sh [--force]
+USAGE
+}
+
+[[ $# -le 1 ]] || {
+  usage
+  die "clean.sh accepts at most one argument"
+}
+
+case "$FORCE" in
+  -h | --help)
+    usage
+    exit 0
+    ;;
+  "" | --force)
+    ;;
+  *)
+    usage
+    die "Unknown argument: $FORCE"
+    ;;
+esac
+
 cd_project_root
 require_docker
-
-FORCE="${1:-}"
 
 if [[ "$FORCE" != "--force" ]]; then
   warn "This will stop the local project stack and remove project volumes/orphans."
