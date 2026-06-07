@@ -4,9 +4,6 @@ on:
   push:
     branches:
       - main
-      - "feature/**"
-      - "fix/**"
-      - "chore/**"
   pull_request:
     branches:
       - main
@@ -68,6 +65,7 @@ jobs:
         run: |
           terraform -chdir=infra/terraform/aws fmt -check -recursive
           terraform -chdir=infra/terraform/aws validate -no-color
+          terraform -chdir=infra/terraform/aws test -no-color
 
       - name: Validate Docker Compose configuration
         run: |
