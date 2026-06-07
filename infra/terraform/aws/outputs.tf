@@ -1,11 +1,11 @@
 output "api_ecr_repository_url" {
   description = "ECR repository URL for the API image."
-  value       = aws_ecr_repository.api.repository_url
+  value       = try(aws_ecr_repository.api[0].repository_url, null)
 }
 
 output "web_ecr_repository_url" {
   description = "ECR repository URL for the web image."
-  value       = aws_ecr_repository.web.repository_url
+  value       = try(aws_ecr_repository.web[0].repository_url, null)
 }
 
 output "ec2_demo_enabled" {

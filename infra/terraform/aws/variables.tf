@@ -44,6 +44,12 @@ variable "force_delete_ecr" {
   default     = false
 }
 
+variable "enable_ecr_repositories" {
+  description = "Create optional KMS-encrypted ECR repositories. The EC2 demo deploys GHCR images and does not require these repositories."
+  type        = bool
+  default     = false
+}
+
 variable "enable_ec2_demo" {
   description = "Create the optional EC2 demo host. Disabled by default to avoid accidental compute cost."
   type        = bool
@@ -109,6 +115,17 @@ variable "web_image" {
   validation {
     condition     = var.web_image == null || can(regex("^ghcr\\.io/.+@sha256:[a-f0-9]{64}$", var.web_image))
     error_message = "web_image must be null or a ghcr.io reference pinned by sha256 digest."
+  }
+}
+
+variable "edge_image" {
+  description = "Digest-pinned container image reference for the EC2 edge service."
+  type        = string
+  default     = null
+
+  validation {
+    condition     = var.edge_image == null || can(regex("^.+@sha256:[a-f0-9]{64}$", var.edge_image))
+    error_message = "edge_image must be null or a container image reference pinned by sha256 digest."
   }
 }
 
