@@ -57,6 +57,7 @@ export function Docs() {
               localUrl={config.localUrls.prometheus}
               icon={Gauge}
               docsPath="docs/monitoring.md"
+              localOnly
             />
             <ServiceAccessButton
               label="Grafana"
@@ -66,6 +67,7 @@ export function Docs() {
               localUrl={config.localUrls.grafana}
               icon={BarChart3}
               docsPath="docs/monitoring.md"
+              localOnly
             />
             <ServiceAccessButton
               label="Loki"
@@ -75,6 +77,7 @@ export function Docs() {
               localUrl={config.localUrls.loki}
               icon={ScrollText}
               docsPath="docs/logging.md"
+              localOnly
             />
           </div>
         </div>

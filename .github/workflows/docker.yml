@@ -89,5 +89,6 @@ jobs:
             VITE_PROMETHEUS_URL=http://localhost:9090
             VITE_GRAFANA_URL=http://localhost:3001
             VITE_LOKI_URL=http://localhost:3100
+            VITE_LOCAL_SERVICES_AVAILABLE=false
           cache-from: type=gha,scope=${{ matrix.image }}
           cache-to: ${{ github.event_name != 'pull_request' && format('type=gha,mode=max,scope={0},ignore-error=true', matrix.image) || '' }}

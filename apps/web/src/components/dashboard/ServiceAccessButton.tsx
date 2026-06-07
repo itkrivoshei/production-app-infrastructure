@@ -22,6 +22,7 @@ type ServiceAccessButtonProps = {
   command?: string;
   docsPath?: string;
   variant?: ComponentProps<typeof Button>["variant"];
+  localOnly?: boolean;
 };
 
 export function ServiceAccessButton({
@@ -34,10 +35,13 @@ export function ServiceAccessButton({
   command = "COMPOSE_FILE=docker-compose.yml:docker-compose.demo.yml docker compose --profile observability up --build -d",
   docsPath = "docs/demo.md",
   variant = "outline",
+  localOnly = false,
 }: ServiceAccessButtonProps) {
   const docsUrl = `${config.repositoryUrl}/blob/main/${docsPath}`;
+  const showLocalGuidance =
+    config.isStaticDemo || (localOnly && !config.localServicesAvailable);
 
-  if (!config.isStaticDemo) {
+  if (!showLocalGuidance) {
     return (
       <Button asChild variant={variant}>
         <a href={url} target="_blank" rel="noreferrer">
@@ -66,8 +70,9 @@ export function ServiceAccessButton({
 
         <div className="space-y-4 px-4 text-sm">
           <div className="rounded-lg border border-cyan-400/30 bg-cyan-400/10 p-3 text-cyan-100">
-            This online demo is a static UI preview. The full observability
-            stack runs locally with Docker Compose.
+            {config.isStaticDemo
+              ? "This online demo is a static UI preview. The full observability stack runs locally with Docker Compose."
+              : "This deployment does not expose the local observability stack. Run the full demo locally with Docker Compose."}
           </div>
 
           <div>

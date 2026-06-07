@@ -51,6 +51,7 @@ jobs:
           VITE_GRAFANA_URL: https://github.com/itkrivoshei/production-app-infrastructure/blob/main/docs/demo.md
           VITE_LOKI_URL: https://github.com/itkrivoshei/production-app-infrastructure/blob/main/docs/logging.md
           VITE_REPOSITORY_URL: https://github.com/itkrivoshei/production-app-infrastructure
+          VITE_LOCAL_SERVICES_AVAILABLE: "false"
 
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium

@@ -58,6 +58,7 @@ export function Metrics() {
               localUrl={config.localUrls.prometheus}
               icon={Gauge}
               docsPath="docs/monitoring.md"
+              localOnly
             />
           </>
         }
