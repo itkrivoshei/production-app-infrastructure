@@ -10,6 +10,37 @@ require_command curl
 HTTP_RETRIES="${HTTP_RETRIES:-15}"
 HTTP_RETRY_DELAY_SECONDS="${HTTP_RETRY_DELAY_SECONDS:-2}"
 FULL_STACK="${FULL_STACK:-false}"
+EXPECTED_APP_MODE="${EXPECTED_APP_MODE:-}"
+
+usage() {
+  cat <<'USAGE'
+Usage:
+  ./scripts/healthcheck.sh
+      Check the local edge and API.
+
+Environment:
+  FULL_STACK=true          Also check Prometheus, Grafana, Loki, and Alloy.
+  EXPECTED_APP_MODE=MODE   Require /api/overview to report safe or demo.
+USAGE
+}
+
+if [[ $# -gt 0 ]]; then
+  case "$1" in
+    -h | --help)
+      [[ $# -eq 1 ]] || die "--help does not accept additional arguments"
+      usage
+      exit 0
+      ;;
+    *)
+      usage
+      die "Unknown argument: $1"
+      ;;
+  esac
+fi
+
+if [[ -n "$EXPECTED_APP_MODE" && "$EXPECTED_APP_MODE" != "safe" && "$EXPECTED_APP_MODE" != "demo" ]]; then
+  die "EXPECTED_APP_MODE must be either safe or demo"
+fi
 
 fetch_with_retry() {
   local name="$1"
@@ -83,6 +114,11 @@ info "Running local stack health checks..."
 check_url "Frontend through Nginx" "http://localhost:${NGINX_PORT}"
 check_url "Nginx" "http://localhost:${NGINX_PORT}/nginx-health"
 check_json_contains "API through Nginx" "http://localhost:${NGINX_PORT}/api/health" '"status":"ok"'
+check_json_contains "API readiness through Nginx" "http://localhost:${NGINX_PORT}/api/ready" '"status":"ready"'
+
+if [[ -n "$EXPECTED_APP_MODE" ]]; then
+  check_json_contains "API runtime mode" "http://localhost:${NGINX_PORT}/api/overview" "\"mode\":\"${EXPECTED_APP_MODE}\""
+fi
 
 if [[ "$FULL_STACK" == "true" ]]; then
   check_url "Prometheus readiness" "http://localhost:${PROMETHEUS_PORT}/-/ready"

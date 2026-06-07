@@ -208,6 +208,7 @@ export function Overview() {
               localUrl={config.localUrls.grafana}
               icon={BarChart3}
               docsPath="docs/monitoring.md"
+              localOnly
             />
             <ServiceAccessButton
               label="Prometheus"
@@ -217,6 +218,7 @@ export function Overview() {
               localUrl={config.localUrls.prometheus}
               icon={Gauge}
               docsPath="docs/monitoring.md"
+              localOnly
             />
             <ServiceAccessButton
               label="Loki"
@@ -226,6 +228,7 @@ export function Overview() {
               localUrl={config.localUrls.loki}
               icon={ScrollText}
               docsPath="docs/logging.md"
+              localOnly
             />
           </>
         }

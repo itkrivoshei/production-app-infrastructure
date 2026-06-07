@@ -31,7 +31,7 @@ The script validates that the project is ready for Kubernetes-oriented work by c
 | Mode            | Command                                                                  | Purpose                                                               |
 | --------------- | ------------------------------------------------------------------------ | --------------------------------------------------------------------- |
 | Default         | `./scripts/kubernetes-readiness.sh`                                      | Reuses an already running full demo stack.                            |
-| One-shot        | `START_STACK=true ./scripts/kubernetes-readiness.sh`                     | Starts the stack when absent and stops only the stack it started.     |
+| One-shot        | `START_STACK=true ./scripts/kubernetes-readiness.sh`                     | Starts a missing stack, completes a partial stack, and stops only a stack it started from empty. |
 | Keep stack      | `START_STACK=true KEEP_STACK=true ./scripts/kubernetes-readiness.sh`     | Starts the stack when absent and leaves it running after the checks.  |
 | Strict GHCR     | `CHECK_GHCR=true ./scripts/kubernetes-readiness.sh`                      | Requires published GHCR images while reusing the running local stack. |
 | One-shot strict | `CHECK_GHCR=true START_STACK=true ./scripts/kubernetes-readiness.sh`     | Runs strict image validation with automatic stack cleanup.            |

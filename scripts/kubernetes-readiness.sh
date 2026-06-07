@@ -24,6 +24,8 @@ cleanup_started_stack() {
 
 start_stack_if_requested() {
   local running_containers
+  local running_services
+  local required_services="alloy api grafana loki nginx prometheus web"
 
   if [[ "$START_STACK" != "true" ]]; then
     info "Reusing an already running full demo stack"
@@ -31,13 +33,19 @@ start_stack_if_requested() {
   fi
 
   running_containers="$(readiness_compose ps -q)"
-  if [[ -n "$running_containers" ]]; then
-    warn "A local demo stack is already running; readiness checks will reuse it"
+  running_services="$(readiness_compose ps --services --status running | sort | tr '\n' ' ' | sed 's/ $//')"
+  if [[ "$running_services" == "$required_services" ]]; then
+    warn "A complete local demo stack is already running; readiness checks will reuse it"
     return 0
   fi
 
-  info "Starting local stack for readiness checks"
-  STACK_STARTED=true
+  if [[ -n "$running_containers" ]]; then
+    warn "The local demo stack is incomplete; readiness checks will start missing services"
+  else
+    info "Starting local stack for readiness checks"
+    STACK_STARTED=true
+  fi
+
   readiness_compose up --build -d
 }
 
@@ -247,7 +255,7 @@ main() {
 
   start_stack_if_requested
 
-  FULL_STACK=true ./scripts/healthcheck.sh
+  EXPECTED_APP_MODE=demo FULL_STACK=true ./scripts/healthcheck.sh
 
   check_http_contains "Frontend" "http://localhost:${NGINX_PORT}" "<!doctype html>"
   check_http_contains "API health" "http://localhost:${NGINX_PORT}/api/health" '"status":"ok"'

@@ -13,17 +13,23 @@ locals {
 }
 
 resource "aws_kms_key" "ecr" {
+  count = var.enable_ecr_repositories ? 1 : 0
+
   description             = "KMS key for ${local.name_prefix} ECR repositories"
   deletion_window_in_days = 7
   enable_key_rotation     = true
 }
 
 resource "aws_kms_alias" "ecr" {
+  count = var.enable_ecr_repositories ? 1 : 0
+
   name          = "alias/${local.name_prefix}-ecr"
-  target_key_id = aws_kms_key.ecr.key_id
+  target_key_id = aws_kms_key.ecr[0].key_id
 }
 
 resource "aws_ecr_repository" "api" {
+  count = var.enable_ecr_repositories ? 1 : 0
+
   name                 = "${local.name_prefix}-api"
   image_tag_mutability = "IMMUTABLE"
   force_delete         = var.force_delete_ecr
@@ -34,11 +40,13 @@ resource "aws_ecr_repository" "api" {
 
   encryption_configuration {
     encryption_type = "KMS"
-    kms_key         = aws_kms_key.ecr.arn
+    kms_key         = aws_kms_key.ecr[0].arn
   }
 }
 
 resource "aws_ecr_repository" "web" {
+  count = var.enable_ecr_repositories ? 1 : 0
+
   name                 = "${local.name_prefix}-web"
   image_tag_mutability = "IMMUTABLE"
   force_delete         = var.force_delete_ecr
@@ -49,17 +57,21 @@ resource "aws_ecr_repository" "web" {
 
   encryption_configuration {
     encryption_type = "KMS"
-    kms_key         = aws_kms_key.ecr.arn
+    kms_key         = aws_kms_key.ecr[0].arn
   }
 }
 
 resource "aws_ecr_lifecycle_policy" "api" {
-  repository = aws_ecr_repository.api.name
+  count = var.enable_ecr_repositories ? 1 : 0
+
+  repository = aws_ecr_repository.api[0].name
   policy     = local.ecr_lifecycle_policy
 }
 
 resource "aws_ecr_lifecycle_policy" "web" {
-  repository = aws_ecr_repository.web.name
+  count = var.enable_ecr_repositories ? 1 : 0
+
+  repository = aws_ecr_repository.web[0].name
   policy     = local.ecr_lifecycle_policy
 }
 
@@ -260,6 +272,7 @@ resource "aws_instance" "app" {
   user_data = templatefile("${path.module}/templates/user-data.sh.tftpl", {
     api_image   = coalesce(var.api_image, "")
     web_image   = coalesce(var.web_image, "")
+    edge_image  = coalesce(var.edge_image, "")
     app_version = coalesce(var.app_version, "")
     commit_sha  = coalesce(var.commit_sha, "")
   })
@@ -281,8 +294,8 @@ resource "aws_instance" "app" {
 
   lifecycle {
     precondition {
-      condition     = var.api_image != null && var.web_image != null && var.app_version != null && var.commit_sha != null
-      error_message = "api_image, web_image, app_version, and commit_sha must be set when enable_ec2_demo is true."
+      condition     = var.api_image != null && var.web_image != null && var.edge_image != null && var.app_version != null && var.commit_sha != null
+      error_message = "api_image, web_image, edge_image, app_version, and commit_sha must be set when enable_ec2_demo is true."
     }
   }
 }

@@ -4,10 +4,27 @@ set -Eeuo pipefail
 # shellcheck source=scripts/lib/common.sh
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib/common.sh"
 
+MODE="${1:-up}"
+
+usage() {
+  cat <<'USAGE'
+Usage:
+  ./scripts/dev.sh [up|detached|down]
+USAGE
+}
+
+[[ $# -le 1 ]] || {
+  usage
+  die "dev.sh accepts at most one mode"
+}
+
+if [[ "$MODE" == "-h" || "$MODE" == "--help" ]]; then
+  usage
+  exit 0
+fi
+
 cd_project_root
 require_docker
-
-MODE="${1:-up}"
 
 case "$MODE" in
   up)
@@ -27,6 +44,7 @@ case "$MODE" in
     success "Stack stopped."
     ;;
   *)
-    die "Unknown mode: $MODE. Usage: ./scripts/dev.sh [up|detached|down]"
+    usage
+    die "Unknown mode: $MODE"
     ;;
 esac

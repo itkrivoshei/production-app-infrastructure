@@ -9,14 +9,14 @@ EDGE_PORT="${COMPOSE_INTEGRATION_PORT:-38080}"
 BASE_URL="http://127.0.0.1:${EDGE_PORT}"
 
 compose_safe() {
-  NGINX_PORT="$EDGE_PORT" docker compose \
+  NGINX_BIND_ADDRESS=127.0.0.1 NGINX_PORT="$EDGE_PORT" docker compose \
     --project-name "$PROJECT_NAME" \
     -f docker-compose.yml \
     "$@"
 }
 
 compose_demo() {
-  NGINX_PORT="$EDGE_PORT" docker compose \
+  NGINX_BIND_ADDRESS=127.0.0.1 NGINX_PORT="$EDGE_PORT" docker compose \
     --project-name "$PROJECT_NAME" \
     -f docker-compose.yml \
     -f docker-compose.demo.yml \

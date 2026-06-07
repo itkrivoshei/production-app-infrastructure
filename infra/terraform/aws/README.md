@@ -15,6 +15,9 @@ terraform validate
 
 These commands do not create AWS resources.
 
+The default plan also creates no resources. Set `enable_ecr_repositories=true`
+only when the optional KMS-encrypted ECR registry path is required.
+
 ## EC2 Requirements
 
 Keep `enable_ec2_demo = false` unless an EC2 proof deployment is intentional.
@@ -24,6 +27,7 @@ When enabled, provide all four release inputs:
 enable_ec2_demo = true
 api_image       = "ghcr.io/owner/devops-control-center-api@sha256:<digest>"
 web_image       = "ghcr.io/owner/devops-control-center-web@sha256:<digest>"
+edge_image      = "nginxinc/nginx-unprivileged@sha256:<digest>"
 app_version     = "1.2.3"
 commit_sha      = "0123456789abcdef0123456789abcdef01234567"
 ```

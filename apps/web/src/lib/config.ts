@@ -1,6 +1,8 @@
 const baseUrl = import.meta.env.BASE_URL ?? "/";
 const routerBasename = baseUrl === "/" ? undefined : baseUrl.replace(/\/$/, "");
 const demoMode = import.meta.env.VITE_DEMO_MODE ?? "live";
+const localServicesAvailable =
+  (import.meta.env.VITE_LOCAL_SERVICES_AVAILABLE ?? "true") === "true";
 
 export const config = {
   apiUrl: import.meta.env.VITE_API_URL ?? "/api",
@@ -10,6 +12,7 @@ export const config = {
   apiDocsUrl: import.meta.env.VITE_API_DOCS_URL ?? "/api/docs",
   demoMode,
   isStaticDemo: demoMode === "static",
+  localServicesAvailable,
   routerBasename,
   repositoryUrl:
     import.meta.env.VITE_REPOSITORY_URL ??

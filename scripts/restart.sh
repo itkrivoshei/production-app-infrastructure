@@ -4,14 +4,32 @@ set -Eeuo pipefail
 # shellcheck source=scripts/lib/common.sh
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib/common.sh"
 
-cd_project_root
-require_docker
-
 SERVICE="${1:-}"
 
-if [[ -z "$SERVICE" ]]; then
-  die "Service name is required. Usage: ./scripts/restart.sh [api|web|nginx]"
+usage() {
+  cat <<'USAGE'
+Usage:
+  ./scripts/restart.sh service
+USAGE
+}
+
+[[ $# -le 1 ]] || {
+  usage
+  die "restart.sh accepts exactly one service"
+}
+
+if [[ "$SERVICE" == "-h" || "$SERVICE" == "--help" ]]; then
+  usage
+  exit 0
 fi
+
+if [[ -z "$SERVICE" ]]; then
+  usage
+  die "Service name is required"
+fi
+
+cd_project_root
+require_docker
 
 validate_service_or_empty "$SERVICE"
 

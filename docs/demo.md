@@ -126,12 +126,12 @@ Show:
 
 ```bash
 ./scripts/rollback-demo.sh --dry-run
-./scripts/rollback-demo.sh v1.0.0
+./scripts/rollback-demo.sh HEAD^
 ```
 
 Show:
 
-- Previous version `v1.0.0` is selected as the rollback target.
+- `HEAD^` is selected as the real rollback source ref.
 - The isolated rollback Compose project deploys the current release first.
 - The API is recreated with the rollback target.
 - `/version` matches the rollback version.
@@ -159,16 +159,20 @@ For a short walkthrough, use this order:
 
 ## Screenshot Proof
 
-Recommended files:
+Committed evidence:
 
 | Proof                             | File                             |
 | --------------------------------- | -------------------------------- |
 | Dashboard overview                | `docs/screenshots/dashboard.png` |
 | Dashboard action feedback         | `docs/screenshots/activity-console.png` |
 | Static local-service guidance     | `docs/screenshots/static-guidance.png` |
-| Grafana dashboard                 | `docs/screenshots/grafana.png`   |
-| Loki logs through Grafana Explore | `docs/screenshots/loki-logs.png` |
-| k6 load evidence                  | `docs/screenshots/k6-load.png`   |
-| Rollback evidence                 | `docs/screenshots/rollback.png`  |
+| Mobile dashboard                  | `docs/screenshots/mobile-dashboard.png` |
+
+Optional runtime captures to add when preparing a live walkthrough:
+
+- Grafana dashboard after load generation.
+- Loki logs through Grafana Explore.
+- k6 load output.
+- Rollback output showing two real source refs and their derived versions.
 
 Capture instructions are in [docs/screenshots/README.md](screenshots/README.md).

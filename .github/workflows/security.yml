@@ -4,9 +4,6 @@ on:
   push:
     branches:
       - main
-      - "feature/**"
-      - "fix/**"
-      - "chore/**"
   pull_request:
     branches:
       - main
@@ -132,6 +129,7 @@ jobs:
               --build-arg VITE_PROMETHEUS_URL=http://localhost:9090
               --build-arg VITE_GRAFANA_URL=http://localhost:3001
               --build-arg VITE_LOKI_URL=http://localhost:3100
+              --build-arg VITE_LOCAL_SERVICES_AVAILABLE=false
 
     steps:
       - name: Checkout repository

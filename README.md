@@ -135,7 +135,7 @@ pnpm k6:docker:load
 curl -i -X POST http://localhost:3000/api/load/errors \
   -H "X-Demo-Action: true"
 ./scripts/restart.sh api
-./scripts/rollback-demo.sh v1.0.0
+./scripts/rollback-demo.sh
 ./scripts/rollback-demo.sh --clean
 ```
 
@@ -152,7 +152,8 @@ pnpm observability:validate
 pnpm e2e:pages
 RUN_BROWSER_E2E=true pnpm integration:compose
 ./scripts/rollback-demo.sh --dry-run
-./scripts/rollback-demo.sh v1.0.0
+PREVIOUS_REF=HEAD^ ./scripts/rollback-demo.sh --dry-run
+./scripts/rollback-demo.sh HEAD^
 ./scripts/rollback-demo.sh --clean
 ```
 

@@ -12,8 +12,8 @@ CURRENT_IMAGE="${CURRENT_IMAGE:-devops-control-center-api:rollback-current}"
 PREVIOUS_IMAGE="${PREVIOUS_IMAGE:-devops-control-center-api:rollback-previous}"
 CURRENT_REF="${CURRENT_REF:-HEAD}"
 PREVIOUS_REF="${PREVIOUS_REF:-}"
-CURRENT_VERSION="${CURRENT_VERSION:-1.1.0}"
-PREVIOUS_VERSION="${PREVIOUS_VERSION:-1.0.0}"
+CURRENT_VERSION="${CURRENT_VERSION:-}"
+PREVIOUS_VERSION="${PREVIOUS_VERSION:-}"
 CURRENT_COMMIT="${CURRENT_COMMIT:-}"
 PREVIOUS_COMMIT="${PREVIOUS_COMMIT:-}"
 CURRENT_SOURCE_COMMIT=""
@@ -24,11 +24,11 @@ DRY_RUN=false
 usage() {
   cat <<'USAGE'
 Usage:
-  ./scripts/rollback-demo.sh [rollback-version]
+  ./scripts/rollback-demo.sh [rollback-ref]
       Build different git refs, deploy current, roll back, and verify.
 
-  ./scripts/rollback-demo.sh v1.0.0
-      Run the rollback simulation with v1.0.0 as the rollback target.
+  ./scripts/rollback-demo.sh HEAD^
+      Run the rollback simulation with HEAD^ as the rollback target.
 
   ./scripts/rollback-demo.sh --clean
       Stop and remove rollback demo containers/network.
@@ -78,9 +78,11 @@ resolve_refs() {
 
   CURRENT_COMMIT="${CURRENT_COMMIT:-$CURRENT_SOURCE_COMMIT}"
   PREVIOUS_COMMIT="${PREVIOUS_COMMIT:-$PREVIOUS_SOURCE_COMMIT}"
+  CURRENT_VERSION="${CURRENT_VERSION:-$(git describe --tags --always "$CURRENT_SOURCE_COMMIT")}"
+  PREVIOUS_VERSION="${PREVIOUS_VERSION:-$(git describe --tags --always "$PREVIOUS_SOURCE_COMMIT")}"
 
-  info "Current rollback ref: ${CURRENT_REF} (${CURRENT_SOURCE_COMMIT})"
-  info "Previous rollback ref: ${PREVIOUS_REF} (${PREVIOUS_SOURCE_COMMIT})"
+  info "Current rollback ref: ${CURRENT_REF} (${CURRENT_VERSION}, ${CURRENT_SOURCE_COMMIT})"
+  info "Previous rollback ref: ${PREVIOUS_REF} (${PREVIOUS_VERSION}, ${PREVIOUS_SOURCE_COMMIT})"
 }
 
 build_demo_images() {
@@ -167,14 +169,26 @@ deploy_api() {
 parse_args() {
   case "${1:-}" in
     --clean)
+      [[ $# -eq 1 ]] || {
+        usage
+        die "--clean does not accept additional arguments"
+      }
       require_docker
       clean_rollback
       exit 0
       ;;
     --dry-run)
+      [[ $# -eq 1 ]] || {
+        usage
+        die "--dry-run does not accept additional arguments"
+      }
       DRY_RUN=true
       ;;
     -h | --help)
+      [[ $# -eq 1 ]] || {
+        usage
+        die "--help does not accept additional arguments"
+      }
       usage
       exit 0
       ;;
@@ -188,10 +202,10 @@ parse_args() {
 
       if [[ $# -gt 1 ]]; then
         usage
-        die "Rollback demo accepts one optional rollback version."
+        die "Rollback demo accepts one optional rollback ref."
       fi
 
-      PREVIOUS_VERSION="$1"
+      PREVIOUS_REF="$1"
       ;;
   esac
 }

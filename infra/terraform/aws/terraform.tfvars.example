@@ -3,8 +3,9 @@ environment  = "dev"
 aws_region   = "eu-central-1"
 owner        = "portfolio"
 
-# ECR repositories are safe to describe, but apply still requires AWS credentials.
-force_delete_ecr = false
+# Optional ECR/KMS resources are not required by the GHCR-based EC2 demo.
+enable_ecr_repositories = false
+force_delete_ecr        = false
 
 # Keep disabled unless you intentionally want to create an EC2 instance.
 enable_ec2_demo = false
@@ -17,5 +18,6 @@ allowed_ssh_cidr_blocks  = []
 # Required only when enable_ec2_demo is true. Resolve published image digests first.
 api_image = null
 web_image = null
+edge_image = null
 app_version = null
 commit_sha  = null
