@@ -89,6 +89,7 @@ pnpm demo:health
 | `./scripts/clean.sh --force` | Remove local containers, volumes, and generated runtime state. |
 | `pnpm docs:links`            | Validate relative Markdown documentation links.                |
 | `pnpm docs:consistency`      | Validate documented runtime invariants.                        |
+| `pnpm ops:cli:test`          | Validate shell command help and argument contracts.            |
 | `pnpm readiness`             | Check an already running full demo stack for Kubernetes reuse. |
 
 ## Common Docker Commands

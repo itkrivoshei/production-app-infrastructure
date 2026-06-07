@@ -29,18 +29,24 @@ curl -fsS -X POST http://localhost:3000/api/logs/generate \
   -d '{"level":"info","message":"screenshot demo log"}'
 ```
 
-## Recommended Screenshots
+## Committed Screenshots
 
-| File            | Capture                                                                                                                            |
-| --------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| File                   | Capture                                                                                                                     |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------- |
 | `dashboard.png` | Dashboard at `http://localhost:3000` showing healthy API, ready status, version, commit, uptime, requests, errors, and error rate. |
 | `activity-console.png` | Dashboard after running load/error/log actions, showing timestamped Activity Console entries. |
 | `static-guidance.png` | GitHub Pages static preview with a local-only service guidance panel open. |
 | `mobile-dashboard.png` | Dashboard static preview or local dashboard at a mobile viewport with controls readable and not overlapping. |
-| `grafana.png`   | Grafana dashboard at `http://localhost:3001` after running `pnpm k6:docker:load`.                                                  |
-| `loki-logs.png` | Grafana Explore with the Loki data source after generating demo logs.                                                              |
-| `k6-load.png`   | Terminal output from `pnpm k6:docker:load` showing successful checks and request metrics.                                          |
-| `rollback.png`  | Terminal output from `./scripts/rollback-demo.sh v1.0.0` showing version verification and a healthy rollback target.               |
+
+## Optional Runtime Captures
+
+Capture these when preparing a live environment walkthrough:
+
+- Grafana dashboard after running `pnpm k6:docker:load`.
+- Grafana Explore showing Loki logs.
+- Terminal output from `pnpm k6:docker:load`.
+- Terminal output from `./scripts/rollback-demo.sh HEAD^` showing the real
+  source refs, derived versions, and healthy rollback target.
 
 ## Capture Standards
 

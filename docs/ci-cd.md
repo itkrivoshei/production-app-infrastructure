@@ -25,7 +25,7 @@ The pipeline is designed to keep local development, pull request validation, ima
 | Build              | API and web packages build successfully.                                        |
 | Compose validation | Docker Compose configuration is valid before runtime checks.                    |
 | Integration        | Safe/demo Compose, k6 smoke, and local browser E2E pass.                        |
-| Infra validation   | Terraform, safe/demo Compose, Prometheus rules, and Alloy config validate.       |
+| Infra validation   | Terraform validation/mock tests, safe/demo Compose, Prometheus rules, and Alloy config validate. |
 | Security scans     | Source, images, Dockerfiles, and shell scripts pass configured security checks. |
 | Deployment         | The static demo can be built and published through GitHub Pages.                |
 
@@ -41,6 +41,7 @@ pnpm observability:validate
 RUN_BROWSER_E2E=true pnpm integration:compose
 pnpm e2e:pages
 ./scripts/rollback-demo.sh --dry-run
+terraform -chdir=infra/terraform/aws test
 ```
 
 Run project handoff checks:
@@ -114,3 +115,6 @@ Pull Request
 ```
 
 Tagged releases publish immutable image tags through the Docker workflow.
+
+Feature, fix, and chore branches run `CI` and `Security` through the pull
+request event only, avoiding duplicate push and pull-request runs.

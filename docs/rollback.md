@@ -24,26 +24,33 @@ Validation covers:
 Run from the repository root:
 
 ```bash
-./scripts/rollback-demo.sh v1.0.0
+./scripts/rollback-demo.sh
 ```
 
 By default, the current image is built from `HEAD`. The previous image uses
 `origin/main` when it resolves to a different commit; on a synchronized
 `main`, the script safely falls back to the first parent of `HEAD`. Override
-refs and display versions explicitly when needed:
+the rollback ref with the positional argument:
 
 ```bash
-CURRENT_REF=HEAD \
-PREVIOUS_REF=v1.0.0 \
-CURRENT_VERSION=1.1.0 \
-PREVIOUS_VERSION=1.0.0 \
-./scripts/rollback-demo.sh
+./scripts/rollback-demo.sh HEAD^
+```
+
+The `/version` values are derived from the actual source commits with
+`git describe --tags --always`. Display versions can still be overridden
+explicitly when demonstrating release metadata:
+
+```bash
+CURRENT_VERSION=current \
+PREVIOUS_VERSION=previous \
+./scripts/rollback-demo.sh HEAD^
 ```
 
 Verify ref selection without building images or changing containers:
 
 ```bash
 ./scripts/rollback-demo.sh --dry-run
+PREVIOUS_REF=HEAD^ ./scripts/rollback-demo.sh --dry-run
 ```
 
 ## Workflow

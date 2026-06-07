@@ -237,7 +237,7 @@ Run the rollback demo:
 
 ```bash
 ./scripts/rollback-demo.sh --dry-run
-./scripts/rollback-demo.sh v1.0.0
+./scripts/rollback-demo.sh HEAD^
 ```
 
 Clean rollback demo resources:

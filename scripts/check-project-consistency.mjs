@@ -40,6 +40,10 @@ const forbiddenPatterns = [
     pattern: /docker-compose\.observability/i,
     description: "removed observability Compose file",
   },
+  {
+    pattern: /rollback-demo\.sh v1\.0\.0/i,
+    description: "rollback version used as a git ref without explicit configuration",
+  },
 ];
 
 for (const file of userFacingFiles) {
@@ -62,7 +66,15 @@ const requiredSnippets = [
   ["docker-compose.yml", "APP_MODE: ${APP_MODE:-safe}"],
   ["docker-compose.demo.yml", "APP_MODE: demo"],
   ["scripts/rollback-demo.sh", "--dry-run"],
+  ["scripts/rollback-demo.sh", "[rollback-ref]"],
+  ["package.json", '"demo:rollback": "bash scripts/rollback-demo.sh"'],
   ["scripts/kubernetes-readiness.sh", 'START_STACK="${START_STACK:-false}"'],
+  ["scripts/healthcheck.sh", 'EXPECTED_APP_MODE="${EXPECTED_APP_MODE:-}"'],
+  ["apps/web/Dockerfile", "ARG VITE_LOCAL_SERVICES_AVAILABLE=false"],
+  ["docker-compose.yml", 'VITE_LOCAL_SERVICES_AVAILABLE: "true"'],
+  ["infra/terraform/aws/variables.tf", 'variable "enable_ecr_repositories"'],
+  ["infra/terraform/aws/variables.tf", 'variable "edge_image"'],
+  ["infra/terraform/aws/tests/runtime.tftest.hcl", 'run "default_plan_creates_no_optional_resources"'],
   [
     "infra/terraform/aws/templates/user-data.sh.tftpl",
     "APP_VERSION: ${app_version}",

@@ -10,13 +10,13 @@ the safe API/web/edge Compose stack on EC2 and exposes only HTTP port `80`.
 
 The AWS layer defines:
 
-- ECR repositories for API and web images.
-- ECR lifecycle policies for `sha-*` image tags.
+- Optional KMS-encrypted ECR repositories and lifecycle policies, disabled by default.
 - Optional EC2 demo infrastructure, disabled by default.
 - An SSM instance profile without public SSH by default.
 - EC2 user data that installs verified Docker Compose and starts the safe stack.
 
-The default configuration is safe for local validation and does not require creating cloud resources.
+The default configuration plans no AWS resources. ECR/KMS and EC2 are separate,
+explicit opt-ins.
 
 ## Safe Validation
 
@@ -55,16 +55,18 @@ To include it in the plan, set:
 enable_ec2_demo = true
 api_image       = "ghcr.io/owner/devops-control-center-api@sha256:<digest>"
 web_image       = "ghcr.io/owner/devops-control-center-web@sha256:<digest>"
+edge_image      = "nginxinc/nginx-unprivileged@sha256:<digest>"
 app_version     = "1.2.3"
 commit_sha      = "0123456789abcdef0123456789abcdef01234567"
 ```
 
-Both application images must be immutable `ghcr.io` references pinned by
-digest. Mutable tags such as `latest` and `sha-*` are rejected. Release version
-and commit SHA are also required so `/api/version` identifies the deployed
-release. The instance starts `APP_MODE=safe`, does not register demo actions,
-restarts the stack after reboot, and serves the hardened dashboard edge plus
-`/api/health` on port `80`.
+Both application images must be public immutable `ghcr.io` references pinned
+by digest. The edge image must also be pinned by digest. Mutable tags such as
+`latest` and `sha-*` are rejected. Release version and commit SHA are required
+so `/api/version` identifies the deployed release. The instance starts
+`APP_MODE=safe`, does not register demo actions, waits for API/web/edge
+healthchecks, rotates Docker logs, applies resource limits, restarts the stack
+after reboot, and serves the hardened dashboard edge on port `80`.
 
 After `terraform apply`, validate the deployment:
 
@@ -82,6 +84,30 @@ headers.
 
 Use this only for a controlled demo environment. EC2 and networking resources
 may create AWS costs.
+
+## Optional ECR Repositories
+
+The EC2 demo deploys GHCR images and does not require ECR. Create the
+KMS-encrypted API/web ECR repositories only when demonstrating that separate
+registry path:
+
+```hcl
+enable_ecr_repositories = true
+```
+
+This opt-in creates ECR repositories, lifecycle policies, a KMS key, and a KMS
+alias, which may create AWS costs.
+
+## Terraform Tests
+
+Run the mock-provider tests without AWS credentials:
+
+```bash
+terraform test
+```
+
+They verify that the default plan creates no resources, ECR is opt-in, and the
+EC2 demo requires immutable release inputs.
 
 ## Safety Rules
 
