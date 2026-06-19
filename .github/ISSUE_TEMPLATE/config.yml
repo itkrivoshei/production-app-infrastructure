@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security policy
+    url: https://github.com/itkrivoshei/production-app-infrastructure/blob/main/docs/security.md
+    about: Review the project security notes before opening public security issues.

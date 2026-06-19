@@ -1,0 +1,28 @@
+name: Task
+description: Track infrastructure, maintenance, or documentation work.
+title: "chore: "
+labels:
+  - maintenance
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: What needs to be done?
+    validations:
+      required: true
+  - type: textarea
+    id: checklist
+    attributes:
+      label: Checklist
+      description: Break the work into reviewable steps.
+      placeholder: |
+        - [ ]
+        - [ ]
+    validations:
+      required: true
+  - type: textarea
+    id: validation
+    attributes:
+      label: Validation
+      description: What checks or evidence should close this task?
