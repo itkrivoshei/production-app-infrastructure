@@ -37,7 +37,8 @@ ENV NODE_ENV=production
 ENV APP_ENV=docker
 ENV PORT=8080
 
-RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
+RUN apk add --no-cache "libcrypto3=3.5.7-r0" "libssl3=3.5.7-r0" \
+  && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 
 COPY --from=prod-deps /app/node_modules ./node_modules
 COPY --from=prod-deps /app/apps/api/node_modules ./apps/api/node_modules
