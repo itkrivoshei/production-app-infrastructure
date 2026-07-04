@@ -72,9 +72,9 @@ export function Docs() {
             <ServiceAccessButton
               label="Loki"
               serviceName="Loki"
-              description="Log storage queried directly or through Grafana Explore in the local stack."
-              url={config.lokiUrl}
-              localUrl={config.localUrls.loki}
+              description="Loki log storage is queried through Grafana Explore in the local stack."
+              url={config.lokiExploreUrl}
+              localUrl={config.localUrls.lokiExplore}
               icon={ScrollText}
               docsPath="docs/logging.md"
               localOnly

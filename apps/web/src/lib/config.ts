@@ -3,12 +3,14 @@ const routerBasename = baseUrl === "/" ? undefined : baseUrl.replace(/\/$/, "");
 const demoMode = import.meta.env.VITE_DEMO_MODE ?? "live";
 const localServicesAvailable =
   (import.meta.env.VITE_LOCAL_SERVICES_AVAILABLE ?? "true") === "true";
+const grafanaUrl = import.meta.env.VITE_GRAFANA_URL ?? "/grafana";
 
 export const config = {
   apiUrl: import.meta.env.VITE_API_URL ?? "/api",
-  grafanaUrl: import.meta.env.VITE_GRAFANA_URL ?? "/grafana",
+  grafanaUrl,
   prometheusUrl: import.meta.env.VITE_PROMETHEUS_URL ?? "/prometheus",
   lokiUrl: import.meta.env.VITE_LOKI_URL ?? "/loki",
+  lokiExploreUrl: import.meta.env.VITE_LOKI_EXPLORE_URL ?? `${grafanaUrl}/explore`,
   apiDocsUrl: import.meta.env.VITE_API_DOCS_URL ?? "/api/docs",
   demoMode,
   isStaticDemo: demoMode === "static",
@@ -23,5 +25,6 @@ export const config = {
     grafana: "http://localhost:3001",
     prometheus: "http://localhost:9090",
     loki: "http://localhost:3100",
+    lokiExplore: "http://localhost:3001/explore",
   },
 };

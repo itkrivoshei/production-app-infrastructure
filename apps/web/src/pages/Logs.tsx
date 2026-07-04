@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { FileText } from "lucide-react";
 import { SectionHeader } from "@/components/dashboard/SectionHeader";
@@ -13,15 +13,55 @@ type LogEntry = {
   timestamp: string;
 };
 
+const logStorageKey = "devops-control-center:generated-logs";
+const maxLogEntries = 10;
+
+function isLogEntry(value: unknown): value is LogEntry {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return false;
+  }
+
+  const entry = value as Partial<LogEntry>;
+  return (
+    typeof entry.level === "string" &&
+    typeof entry.message === "string" &&
+    typeof entry.timestamp === "string"
+  );
+}
+
+function readStoredLogs() {
+  if (typeof window === "undefined") return [];
+
+  try {
+    const stored = window.localStorage.getItem(logStorageKey);
+    if (!stored) return [];
+
+    const parsed = JSON.parse(stored) as unknown;
+    return Array.isArray(parsed)
+      ? parsed.filter(isLogEntry).slice(0, maxLogEntries)
+      : [];
+  } catch {
+    return [];
+  }
+}
+
 export function Logs() {
-  const [entries, setEntries] = useState<LogEntry[]>([]);
+  const [entries, setEntries] = useState<LogEntry[]>(readStoredLogs);
   const { overview, demoActionsAvailable } = useRuntimeOverview();
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(logStorageKey, JSON.stringify(entries));
+    } catch {
+      // Browser storage can be unavailable in private or restricted contexts.
+    }
+  }, [entries]);
 
   const generateLog = useMutation({
     mutationFn: () =>
       api.generateLog("info", "Manual log generated from dashboard"),
     onSuccess: (data) => {
-      setEntries((current) => [data, ...current].slice(0, 10));
+      setEntries((current) => [data, ...current].slice(0, maxLogEntries));
     },
   });
 

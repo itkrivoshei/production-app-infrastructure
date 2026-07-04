@@ -25,5 +25,6 @@ export async function registerSwagger(
 
   await app.register(swaggerUi, {
     routePrefix: "/docs",
+    indexPrefix: "/api",
   });
 }

@@ -35,7 +35,7 @@ RUN pnpm --filter @production-app-infrastructure/web build
 FROM nginxinc/nginx-unprivileged:1.29-alpine3.23 AS runtime
 
 USER root
-RUN apk add --no-cache "libcrypto3=3.5.7-r0" "libssl3=3.5.7-r0" "libpng=1.6.58-r1" "libxml2=2.13.9-r1" \
+RUN apk add --no-cache "libcrypto3=3.5.7-r0" "libssl3=3.5.7-r0" "libpng=1.6.58-r1" "libxml2=2.13.9-r1" "libexpat=2.8.2-r0" \
   && if apk info -e curl >/dev/null 2>&1; then apk del curl; fi
 
 COPY ops/nginx/web.conf /etc/nginx/conf.d/default.conf

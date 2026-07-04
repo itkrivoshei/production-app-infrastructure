@@ -67,7 +67,7 @@ export function Overview() {
       timestamp: new Date().toISOString(),
       status: "info",
     },
-  ]);
+  ], "devops-control-center:overview-activity");
   const overview = useQuery({
     queryKey: ["overview"],
     queryFn: api.overview,
@@ -223,9 +223,9 @@ export function Overview() {
             <ServiceAccessButton
               label="Loki"
               serviceName="Loki"
-              description="Log storage queried directly or through Grafana Explore in the local stack."
-              url={config.lokiUrl}
-              localUrl={config.localUrls.loki}
+              description="Loki log storage is queried through Grafana Explore in the local stack."
+              url={config.lokiExploreUrl}
+              localUrl={config.localUrls.lokiExplore}
               icon={ScrollText}
               docsPath="docs/logging.md"
               localOnly
