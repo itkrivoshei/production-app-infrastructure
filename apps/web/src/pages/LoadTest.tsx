@@ -12,7 +12,10 @@ import { queryClient } from "@/lib/queryClient";
 import { useRuntimeOverview } from "@/lib/useRuntimeOverview";
 
 export function LoadTest() {
-  const { activityEntries, addActivity } = useActivityLog();
+  const { activityEntries, addActivity } = useActivityLog(
+    [],
+    "devops-control-center:load-test-activity",
+  );
   const { overview, demoActionsAvailable } = useRuntimeOverview();
 
   const cpuLoad = useMutation({
