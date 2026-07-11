@@ -168,6 +168,7 @@ docker compose --profile observability down
 | ![Prometheus targets](docs/screenshots/prometheus-targets.png) | Prometheus scrape target `UP` |
 | ![Prometheus request rate graph](docs/screenshots/prometheus-graph-requests.png) | Prometheus graph of request rate across API routes |
 | ![Grafana dashboard after load](docs/screenshots/grafana-dashboard-load.png) | Grafana dashboard during a k6 load run |
+| ![Grafana Explore Loki logs](docs/screenshots/grafana-explore-loki-logs.png) | Loki logs in Grafana Explore filtered to a generated demo log |
 
 #### Reliability & Testing
 

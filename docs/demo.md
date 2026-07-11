@@ -173,12 +173,9 @@ Committed evidence:
 | Dashboard Metrics narrow layout   | [`docs/screenshots/dashboard-metrics-narrow.png`](screenshots/dashboard-metrics-narrow.png) |
 | API docs (Swagger/OpenAPI)        | [`docs/screenshots/api-docs.png`](screenshots/api-docs.png) |
 | Grafana dashboard after load generation | [`docs/screenshots/grafana-dashboard-load.png`](screenshots/grafana-dashboard-load.png) |
+| Grafana Explore with Loki logs    | [`docs/screenshots/grafana-explore-loki-logs.png`](screenshots/grafana-explore-loki-logs.png) |
 | k6 load test terminal output      | [`docs/screenshots/k6-load-terminal.png`](screenshots/k6-load-terminal.png) |
 | k6 load test summary              | [`docs/screenshots/k6-load-summary.png`](screenshots/k6-load-summary.png) |
 | Full stack startup                | [`docs/screenshots/docker-compose-up-full-stack.png`](screenshots/docker-compose-up-full-stack.png) |
 | Demo health check terminal output | [`docs/screenshots/demo-health-terminal.png`](screenshots/demo-health-terminal.png) |
 | Rollback output with real source refs and derived versions | [`docs/screenshots/rollback-demo-terminal.png`](screenshots/rollback-demo-terminal.png) |
-
-Still needed: Loki logs through Grafana Explore.
-
-Capture instructions are in [docs/screenshots/README.md](screenshots/README.md).
