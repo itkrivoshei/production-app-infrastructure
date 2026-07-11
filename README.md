@@ -141,6 +141,46 @@ curl -i -X POST http://localhost:3000/api/load/errors \
 
 The dashboard can also generate CPU load, controlled errors, and logs from the UI.
 
+Stop the demo stack:
+
+```bash
+docker compose --profile observability down
+```
+
+### Screenshots
+
+#### Product
+
+| Screenshot | What it shows |
+| --- | --- |
+| ![Dashboard overview](docs/screenshots/dashboard.png) | Dashboard: healthy API, ready status, version, uptime, requests, and error rate |
+| ![Activity Console](docs/screenshots/activity-console.png) | Activity Console after generating load, errors, and logs |
+| ![Mobile dashboard](docs/screenshots/mobile-dashboard.png) | Dashboard at a mobile viewport |
+| ![Dashboard metrics page](docs/screenshots/dashboard-metrics.png) | Dashboard's own Metrics page |
+| ![Dashboard metrics narrow layout](docs/screenshots/dashboard-metrics-narrow.png) | Metrics page at a narrower desktop viewport |
+| ![API docs](docs/screenshots/api-docs.png) | Swagger/OpenAPI UI listing all API endpoints |
+| ![Static local-service guidance](docs/screenshots/static-guidance.png) | GitHub Pages static preview guidance panel |
+
+#### Observability
+
+| Screenshot | What it shows |
+| --- | --- |
+| ![Prometheus targets](docs/screenshots/prometheus-targets.png) | Prometheus scrape target `UP` |
+| ![Prometheus request rate graph](docs/screenshots/prometheus-graph-requests.png) | Prometheus graph of request rate across API routes |
+| ![Grafana dashboard after load](docs/screenshots/grafana-dashboard-load.png) | Grafana dashboard during a k6 load run |
+
+#### Reliability & Testing
+
+| Screenshot | What it shows |
+| --- | --- |
+| ![k6 load test terminal output](docs/screenshots/k6-load-terminal.png) | Terminal output of `pnpm k6:docker:load` |
+| ![k6 load test summary](docs/screenshots/k6-load-summary.png) | k6 load test results summary |
+| ![Full stack startup](docs/screenshots/docker-compose-up-full-stack.png) | Full observability stack starting cleanly |
+| ![Demo health check terminal output](docs/screenshots/demo-health-terminal.png) | Every service passing `pnpm demo:health` |
+| ![Rollback demo terminal output](docs/screenshots/rollback-demo-terminal.png) | Rollback simulation with real source refs and a healthy rollback target |
+
+More detail on each capture is in [docs/screenshots](docs/screenshots/README.md).
+
 See the [Demo guide](docs/demo.md) for the step-by-step walkthrough.
 
 ## Local Quality Gate

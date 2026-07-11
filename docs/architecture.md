@@ -58,7 +58,7 @@ flowchart LR
 - API and web images use multi-stage Docker builds.
 - Runtime containers use non-root users where practical.
 - Nginx is the only public local entrypoint for browser traffic.
-- The default stack runs `APP_MODE=safe`; demo routes exist only with `docker-compose.demo.yml`.
+- The default stack runs `APP_MODE=safe`; demo routes exist only with [`docker-compose.demo.yml`](../docker-compose.demo.yml).
 - Application containers use read-only filesystems, dropped capabilities, and `no-new-privileges`.
 - Frontend API calls use relative paths so the same build works behind Nginx.
 - Application configuration is environment-based.
