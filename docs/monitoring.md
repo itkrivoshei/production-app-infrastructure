@@ -112,11 +112,9 @@ app_info
 
 Grafana provisioning is stored in:
 
-```text
-ops/grafana/provisioning/datasources
-ops/grafana/provisioning/dashboards
-ops/grafana/dashboards
-```
+- [`ops/grafana/provisioning/datasources`](../ops/grafana/provisioning/datasources)
+- [`ops/grafana/provisioning/dashboards`](../ops/grafana/provisioning/dashboards)
+- [`ops/grafana/dashboards`](../ops/grafana/dashboards)
 
 Open Grafana:
 

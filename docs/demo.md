@@ -163,16 +163,22 @@ Committed evidence:
 
 | Proof                             | File                             |
 | --------------------------------- | -------------------------------- |
-| Dashboard overview                | `docs/screenshots/dashboard.png` |
-| Dashboard action feedback         | `docs/screenshots/activity-console.png` |
-| Static local-service guidance     | `docs/screenshots/static-guidance.png` |
-| Mobile dashboard                  | `docs/screenshots/mobile-dashboard.png` |
+| Dashboard overview                | [`docs/screenshots/dashboard.png`](screenshots/dashboard.png) |
+| Dashboard action feedback         | [`docs/screenshots/activity-console.png`](screenshots/activity-console.png) |
+| Static local-service guidance     | [`docs/screenshots/static-guidance.png`](screenshots/static-guidance.png) |
+| Mobile dashboard                  | [`docs/screenshots/mobile-dashboard.png`](screenshots/mobile-dashboard.png) |
+| Prometheus scrape target          | [`docs/screenshots/prometheus-targets.png`](screenshots/prometheus-targets.png) |
+| Prometheus request rate graph     | [`docs/screenshots/prometheus-graph-requests.png`](screenshots/prometheus-graph-requests.png) |
+| Dashboard Metrics page            | [`docs/screenshots/dashboard-metrics.png`](screenshots/dashboard-metrics.png) |
+| Dashboard Metrics narrow layout   | [`docs/screenshots/dashboard-metrics-narrow.png`](screenshots/dashboard-metrics-narrow.png) |
+| API docs (Swagger/OpenAPI)        | [`docs/screenshots/api-docs.png`](screenshots/api-docs.png) |
+| Grafana dashboard after load generation | [`docs/screenshots/grafana-dashboard-load.png`](screenshots/grafana-dashboard-load.png) |
+| k6 load test terminal output      | [`docs/screenshots/k6-load-terminal.png`](screenshots/k6-load-terminal.png) |
+| k6 load test summary              | [`docs/screenshots/k6-load-summary.png`](screenshots/k6-load-summary.png) |
+| Full stack startup                | [`docs/screenshots/docker-compose-up-full-stack.png`](screenshots/docker-compose-up-full-stack.png) |
+| Demo health check terminal output | [`docs/screenshots/demo-health-terminal.png`](screenshots/demo-health-terminal.png) |
+| Rollback output with real source refs and derived versions | [`docs/screenshots/rollback-demo-terminal.png`](screenshots/rollback-demo-terminal.png) |
 
-Optional runtime captures to add when preparing a live walkthrough:
-
-- Grafana dashboard after load generation.
-- Loki logs through Grafana Explore.
-- k6 load output.
-- Rollback output showing two real source refs and their derived versions.
+Still needed: Loki logs through Grafana Explore.
 
 Capture instructions are in [docs/screenshots/README.md](screenshots/README.md).
