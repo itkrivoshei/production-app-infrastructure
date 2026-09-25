@@ -19,7 +19,7 @@ The pipeline is designed to keep local development, pull request validation, ima
 | Gate               | What it validates                                                               |
 | ------------------ | ------------------------------------------------------------------------------- |
 | Install            | Dependencies resolve from the lockfile.                                         |
-| Lint / Typecheck   | Source code, TypeScript types, and formatting-sensitive checks pass.            |
+| Lint / Typecheck   | Source code lint and TypeScript checks pass.                                    |
 | Tests / coverage   | API and web suites pass the configured coverage thresholds.                     |
 | Docs consistency   | Relative links and documented runtime invariants remain valid.                  |
 | Build              | API and web packages build successfully.                                        |

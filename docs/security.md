@@ -42,6 +42,14 @@ Install the local tools when you want to reproduce CI checks manually:
 
 Hadolint is run through Docker, so no local binary is required.
 
+## Dependency Audit
+
+Check npm dependencies against the advisory database:
+
+```bash
+pnpm audit --audit-level moderate
+```
+
 ## Local Filesystem Scan
 
 ```bash
@@ -67,7 +75,7 @@ docker build -f apps/web/Dockerfile -t devops-control-center-web:local .
 Scan the API image:
 
 ```bash
-trivy image --scanners vuln \
+trivy image --scanners vuln,secret,misconfig \
   --severity HIGH,CRITICAL \
   --ignore-unfixed \
   --exit-code 1 \
@@ -77,7 +85,7 @@ trivy image --scanners vuln \
 Scan the web image:
 
 ```bash
-trivy image --scanners vuln \
+trivy image --scanners vuln,secret,misconfig \
   --severity HIGH,CRITICAL \
   --ignore-unfixed \
   --exit-code 1 \
@@ -87,11 +95,11 @@ trivy image --scanners vuln \
 ## Dockerfile Lint
 
 ```bash
-docker run --rm -i hadolint/hadolint:v2.12.0-alpine \
-  hadolint --ignore DL3002 - < apps/api/Dockerfile
+docker run --rm -i ghcr.io/hadolint/hadolint:v2.15.1-debian \
+  hadolint --failure-threshold warning --ignore DL3002 - < apps/api/Dockerfile
 
-docker run --rm -i hadolint/hadolint:v2.12.0-alpine \
-  hadolint --ignore DL3002 - < apps/web/Dockerfile
+docker run --rm -i ghcr.io/hadolint/hadolint:v2.15.1-debian \
+  hadolint --failure-threshold warning --ignore DL3002 - < apps/web/Dockerfile
 ```
 
 `DL3002` is ignored intentionally because the runtime images use container-specific user handling where practical.
@@ -128,6 +136,7 @@ Before merging, the pull request should have green checks for:
 For security-sensitive changes, run the local checks before pushing:
 
 ```bash
+pnpm audit --audit-level moderate
 pnpm run ci
 trivy fs --scanners vuln,secret,misconfig \
   --severity HIGH,CRITICAL \
