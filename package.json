@@ -81,7 +81,7 @@
   "author": "Nikita Krivoshei",
   "license": "MIT",
   "devDependencies": {
-    "@playwright/test": "^1.62.1",
+    "@playwright/test": "^1.63.0",
     "concurrently": "^10.0.5"
   }
 }

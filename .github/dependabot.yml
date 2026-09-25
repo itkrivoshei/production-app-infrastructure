@@ -12,6 +12,10 @@ updates:
       default-days: 7
     commit-message:
       prefix: deps
+    ignore:
+      - dependency-name: typescript
+        update-types:
+          - version-update:semver-major
     groups:
       application-dependencies:
         patterns:
