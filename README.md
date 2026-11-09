@@ -14,6 +14,10 @@ Production-style DevOps control center for a small API and dashboard with Docker
 
 </div>
 
+> [!NOTE]
+> **Archived.** This was a learning project. It is complete and no longer maintained, so the repository is read-only.
+> The live demo stays online.
+
 ## Overview
 
 This project demonstrates a production-oriented DevOps workflow around a containerized API, dashboard, observability stack, CI/CD automation, security checks, load testing, rollback workflows, and optional Terraform validation.
