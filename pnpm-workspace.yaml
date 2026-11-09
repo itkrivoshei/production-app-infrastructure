@@ -2,6 +2,8 @@ packages:
   - "apps/*"
 overrides:
   esbuild: 0.28.1
+  "minimatch@>=7.0.0 <11.0.1": ^11.0.5
+  "source-map-js@<1.2.2": ^1.2.2
 allowBuilds:
   esbuild: false
   msw: false
